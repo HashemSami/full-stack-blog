@@ -46,22 +46,22 @@ const apiLogin = async ({ body }: Request<{}, {}, User>, res: Response) => {
     const newUser = user(body);
 
     await newUser.login();
-    const { username, password, email } = newUser.getData();
-
-    res.json({
-      username,
-      password,
-      email,
-    });
+    const { _id, username, email } = newUser.getData();
 
     // res.json({
-    //   token: jwt.sign({ username, email }, process.env.JWTSECRET || "", {
-    //     expiresIn: tokenLasts,
-    //   }),
     //   username,
+    //   password,
+    //   email,
     // });
+    // console.log(_id);
+    res.json({
+      token: jwt.sign({ _id, username }, process.env.JWTSECRET || "", {
+        expiresIn: tokenLasts,
+      }),
+      username,
+    });
   } catch (regErrors) {
-    res.status(500).send(regErrors);
+    res.send(false);
   }
 };
 

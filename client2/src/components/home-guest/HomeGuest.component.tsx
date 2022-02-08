@@ -1,8 +1,34 @@
-import React, { FC } from "react";
+import React, { FC, useState } from "react";
+import Container from "../container/Container.component";
+import { usePageTitle } from "../../hooks/pageTitleHook";
+import Axios from "axios";
 
-const MainContent: FC = () => {
+const HomeGuest: FC = () => {
+  usePageTitle("Welcome!");
+
+  const [username, setUsername] = useState<string>();
+  const [email, setEmail] = useState<string>();
+  const [password, setPassword] = useState<string>();
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    try {
+      console.log(username);
+      await Axios.post("http://localhost:8000/api/v0/users/register", {
+        username,
+        email,
+        password,
+      });
+      // const res = await Axios.get("http://localhost:8000/api/v0");
+      console.log("user created");
+      // console.log(res.data);
+    } catch (e) {
+      console.log("there was an error");
+    }
+  };
+
   return (
-    <div className="container py-md-5">
+    <Container wide>
       <div className="row align-items-center">
         <div className="col-lg-7 py-3 py-md-5">
           <h1 className="display-3">Remember Writing?</h1>
@@ -14,7 +40,7 @@ const MainContent: FC = () => {
           </p>
         </div>
         <div className="col-lg-5 pl-lg-5 pb-3 py-lg-5">
-          <form>
+          <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label htmlFor="username-register" className="text-muted mb-1">
                 <small>Username</small>
@@ -26,6 +52,7 @@ const MainContent: FC = () => {
                 type="text"
                 placeholder="Pick a username"
                 autoComplete="off"
+                onChange={(e) => setUsername(e.target.value)}
               />
             </div>
             <div className="form-group">
@@ -39,6 +66,7 @@ const MainContent: FC = () => {
                 type="text"
                 placeholder="you@example.com"
                 autoComplete="off"
+                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
             <div className="form-group">
@@ -51,6 +79,7 @@ const MainContent: FC = () => {
                 className="form-control"
                 type="password"
                 placeholder="Create a password"
+                onChange={(e) => setPassword(e.target.value)}
               />
             </div>
             <button
@@ -62,8 +91,8 @@ const MainContent: FC = () => {
           </form>
         </div>
       </div>
-    </div>
+    </Container>
   );
 };
 
-export default MainContent;
+export default HomeGuest;

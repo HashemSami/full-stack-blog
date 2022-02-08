@@ -1,8 +1,12 @@
-import React, { FC } from "react";
+import React, { FC, useEffect } from "react";
+import Container from "../container/Container.component";
+import { usePageTitle } from "../../hooks/pageTitleHook";
 
 const Terms: FC = () => {
+  usePageTitle("Our Terms");
+
   return (
-    <div className="container container--narrow py-md-5">
+    <Container>
       <h2>Our Terms &amp; Conditions</h2>
       <p className="lead text-muted">
         Lorem ipsum dolor sit amet consectetur adipisicing elit. Corporis
@@ -31,7 +35,7 @@ const Terms: FC = () => {
         nisi sed harum laborum, nemo odio animi officia quisquam. Veniam, natus
         reprehenderit.
       </p>
-    </div>
+    </Container>
   );
 };
 

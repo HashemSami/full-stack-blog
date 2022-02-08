@@ -1,8 +1,11 @@
-import React, { FC } from "react";
+import React, { FC, useEffect } from "react";
+import Container from "../container/Container.component";
+import { usePageTitle } from "../../hooks/pageTitleHook";
 
 const About: FC = () => {
+  usePageTitle("About us");
   return (
-    <div className="container container--narrow py-md-5">
+    <Container>
       <h2>About Us</h2>
       <p className="lead text-muted">
         Lorem ipsum dolor sit amet consectetur adipisicing elit. Corporis
@@ -24,7 +27,7 @@ const About: FC = () => {
         nobis provident quo dolorum sapiente temporibus facere non repellendus
         consequatur cupiditate!
       </p>
-    </div>
+    </Container>
   );
 };
 

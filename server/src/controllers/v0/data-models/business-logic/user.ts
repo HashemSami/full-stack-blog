@@ -100,7 +100,7 @@ const login = async (
 
     userDb
       .findByUsername(userData.username)
-      .then(attemptedUser => {
+      .then((attemptedUser) => {
         if (
           attemptedUser &&
           bcrypt.compareSync(userData.password, attemptedUser.password)
@@ -171,7 +171,7 @@ const findByUsername = (
 
     userDb
       .findByUsername(username)
-      .then(userDoc => {
+      .then((userDoc) => {
         if (userDoc) {
           const userData = {
             _id: userDoc._id,
