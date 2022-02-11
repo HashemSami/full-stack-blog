@@ -107,84 +107,7 @@ const updatePost = (
 
 // =====================================================================
 
-const deletePost = (
-  postIdToDelete: ObjectId,
-  currentUserId: ObjectId,
-  postDb: PostDb
-) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const post = await postDb.findBySingleId(postIdToDelete, currentUserId);
-      if (post?.isVisitorOwner) {
-        const res = await postDb.deletePostById(postIdToDelete);
-
-        resolve("success");
-      } else {
-        reject();
-      }
-    } catch (e) {
-      reject();
-    }
-  });
-};
 // =====================================================================
-
-const findSingelPostById = (
-  postId: ObjectId,
-  visitorId: ObjectId,
-  postDb: PostDb
-) => {
-  return new Promise(async (resolve, reject) => {
-    if (typeof postId != "string" || !ObjectId.isValid(postId)) {
-      reject();
-      return;
-    }
-
-    try {
-      const post = await postDb.findBySingleId(postId, visitorId);
-      resolve(post);
-    } catch {
-      reject();
-    }
-  });
-};
-// =====================================================================
-
-const findPostsByAuthorId = (authorId: ObjectId, postDb: PostDb) => {
-  return new Promise(async (resolve, reject) => {
-    if (typeof authorId != "string" || !ObjectId.isValid(authorId)) {
-      reject();
-      // to stop any further operations and exit from function
-      return;
-    }
-    try {
-      const posts = await postDb.findByAuthorId(authorId);
-
-      if (posts?.length) {
-        resolve(posts);
-      } else {
-        reject();
-      }
-    } catch {
-      reject();
-    }
-  });
-};
-// =====================================================================
-
-const searchPosts = (searchTerm: "string", postDb: PostDb) => {
-  return new Promise(async (resolve, reject) => {
-    if (typeof searchTerm != "string") {
-      reject();
-      return;
-    }
-    const posts = await postDb.searchByTearm(searchTerm);
-    resolve(posts);
-  });
-};
-
-// =====================================================================
-
 const countsPostsByAuthor = (authorId: ObjectId, postDb: PostDb) => {
   return new Promise(async (resolve, reject) => {
     if (typeof authorId != "string" || !ObjectId.isValid(authorId)) {
@@ -197,7 +120,6 @@ const countsPostsByAuthor = (authorId: ObjectId, postDb: PostDb) => {
 };
 
 // =====================================================================
-
 const getFeed = async (
   visitorId: ObjectId,
   postDb: PostDb,
@@ -206,7 +128,7 @@ const getFeed = async (
   // create an array of the user ids that the current user follows
   const followedUsers = await followsDB.findFollowedUsers(visitorId);
 
-  const followedUsersIds = followedUsers?.map(followDoc => {
+  const followedUsersIds = followedUsers?.map((followDoc) => {
     return followDoc.followedId;
   });
 
@@ -214,11 +136,8 @@ const getFeed = async (
   if (followedUsersIds) return await postDb.getFeedPosts(followedUsersIds);
 };
 
-export const post = (
-  data: Post,
-  userId: ObjectId,
-  requestedPostId: ObjectId
-) => {
+// =====================================================================
+export const post = (data: Post, userId: ObjectId) => {
   const postsDb = PostDatabase();
   const followsDb = FollowsDatabase();
 
@@ -244,15 +163,87 @@ export const post = (
   return {
     createPost: () => createPost(postData, errorState, postsDb),
     updatePost: () => updatePost(postData, errorState, postsDb),
-    deletePost: (postIdToDelete: ObjectId, currentUserId: ObjectId) =>
-      deletePost(postIdToDelete, currentUserId, postsDb),
-    findSingelPostById: (postId: ObjectId, visitorId: ObjectId) =>
-      findSingelPostById(postId, visitorId, postsDb),
-    findPostsByAuthorId: (authorId: ObjectId) =>
-      findPostsByAuthorId(authorId, postsDb),
-    searchPosts: (searchTerm: "string") => searchPosts(searchTerm, postsDb),
     countsPostsByAuthor: (authorId: ObjectId) =>
       countsPostsByAuthor(authorId, postsDb),
     getFeed: (visitorId: ObjectId) => getFeed(visitorId, postsDb, followsDb),
   };
+};
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// Attached Functions
+
+post.findPostsByAuthorId = (authorId: ObjectId) => {
+  const postsDb = PostDatabase();
+
+  return new Promise(async (resolve, reject) => {
+    if (typeof authorId != "string" || !ObjectId.isValid(authorId)) {
+      reject();
+      // to stop any further operations and exit from function
+      return;
+    }
+    try {
+      const posts = await postsDb.findByAuthorId(authorId);
+
+      if (posts?.length) {
+        resolve(posts);
+      } else {
+        reject();
+      }
+    } catch {
+      reject();
+    }
+  });
+};
+
+// ===================================================================================
+post.findSingelPostById = (postId: ObjectId, visitorId: ObjectId) => {
+  const postsDb = PostDatabase();
+
+  return new Promise(async (resolve, reject) => {
+    if (typeof postId != "string" || !ObjectId.isValid(postId)) {
+      reject();
+      return;
+    }
+
+    try {
+      const post = await postsDb.findBySingleId(postId, visitorId);
+      resolve(post);
+    } catch {
+      reject();
+    }
+  });
+};
+
+// ===================================================================================
+post.deletePost = (postIdToDelete: ObjectId, currentUserId: ObjectId) => {
+  const postsDb = PostDatabase();
+
+  return new Promise(async (resolve, reject) => {
+    try {
+      const post = await postsDb.findBySingleId(postIdToDelete, currentUserId);
+      if (post?.isVisitorOwner) {
+        const res = await postsDb.deletePostById(postIdToDelete);
+
+        resolve("success");
+      } else {
+        reject();
+      }
+    } catch (e) {
+      reject();
+    }
+  });
+};
+
+// ===================================================================================
+
+post.searchPosts = (searchTerm: "string") => {
+  const postsDb = PostDatabase();
+
+  return new Promise(async (resolve, reject) => {
+    if (typeof searchTerm != "string") {
+      reject();
+      return;
+    }
+    const posts = await postsDb.searchByTearm(searchTerm);
+    resolve(posts);
+  });
 };

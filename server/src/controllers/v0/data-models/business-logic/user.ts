@@ -12,6 +12,7 @@ const getAvatar = (email: string) => {
   return `https://gravatar.com/avatar/${md5(email)}?s=128`;
 };
 
+// ==========================================================================
 const cleanUp = (userData: User): User => {
   if (typeof userData.username != "string") {
     userData.username = "";
@@ -31,6 +32,7 @@ const cleanUp = (userData: User): User => {
   };
 };
 
+// ==========================================================================
 // we need to wrap our validator in a promise so that when we use
 // this function anyware with await, it will make sure all of the code
 // inside the validator function will be executed first
@@ -91,6 +93,7 @@ const validate = async (
   });
 };
 
+// ==========================================================================
 const login = async (
   userState: () => [User, (newData: User) => void],
   userDb: UserDb
@@ -119,6 +122,7 @@ const login = async (
   });
 };
 
+// ==========================================================================
 const register = async (
   userState: () => [User, (newData: User) => void],
   errorState: () => [string[], (err: string) => void],
@@ -156,54 +160,7 @@ const register = async (
   });
 };
 
-const findByUsername = (
-  username: string,
-  userDb: UserDb
-): Promise<{
-  _id: ObjectId;
-  username: string;
-}> => {
-  return new Promise((resolve, reject) => {
-    if (typeof username != "string") {
-      reject();
-      return;
-    }
-
-    userDb
-      .findByUsername(username)
-      .then((userDoc) => {
-        if (userDoc) {
-          const userData = {
-            _id: userDoc._id,
-            username: userDoc.username,
-          };
-          resolve(userData);
-        } else {
-          reject();
-        }
-      })
-      .catch(() => {
-        reject();
-      });
-  });
-};
-
-const doesEmailExist = (email: string, userDb: UserDb) => {
-  return new Promise(async (rejects, resolve) => {
-    if (typeof email != "string") {
-      resolve(false);
-      return;
-    }
-
-    const user = await userDb.findByEmail(email);
-
-    if (user) {
-      resolve(true);
-    }
-    resolve(false);
-  });
-};
-
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 export const user = (data: User) => {
   const userDb = UsersDatabase();
 
@@ -230,7 +187,59 @@ export const user = (data: User) => {
     getData: () => getUserData(),
     login: () => login(userState, userDb),
     register: () => register(userState, errorState, userDb),
-    doesEmailExist: (email: string) => doesEmailExist(email, userDb),
-    findByUsername: (username: string) => findByUsername(username, userDb),
   };
+};
+
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// Attached functions
+
+user.findByUsername = (
+  username: string
+): Promise<{
+  _id: ObjectId;
+  username: string;
+}> => {
+  const userDb = UsersDatabase();
+
+  return new Promise((resolve, reject) => {
+    if (typeof username != "string") {
+      reject();
+      return;
+    }
+
+    userDb
+      .findByUsername(username)
+      .then((userDoc) => {
+        if (userDoc) {
+          const userData = {
+            _id: userDoc._id,
+            username: userDoc.username,
+          };
+          resolve(userData);
+        } else {
+          reject();
+        }
+      })
+      .catch(() => {
+        reject();
+      });
+  });
+};
+
+user.doesEmailExist = (email: string) => {
+  const userDb = UsersDatabase();
+
+  return new Promise(async (rejects, resolve) => {
+    if (typeof email != "string") {
+      resolve(false);
+      return;
+    }
+
+    const user = await userDb.findByEmail(email);
+
+    if (user) {
+      resolve(true);
+    }
+    resolve(false);
+  });
 };
