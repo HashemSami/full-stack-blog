@@ -161,11 +161,16 @@ const register = async (
 };
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-export const user = (data: User) => {
+export const user = () => {
   const userDb = UsersDatabase();
 
-  const userData: User = cleanUp(data);
+  let userData: User;
+
   const getUserData = () => userData;
+  const setData = (data: User) => {
+    userData = cleanUp(data);
+  };
+
   const userState = (): [User, (newData: User) => void] => {
     const setUserData = (newData: User) => {
       Object.assign(userData, newData);
@@ -185,21 +190,25 @@ export const user = (data: User) => {
 
   return {
     getData: () => getUserData(),
+    setUserData: (newUserData: User) => setData(newUserData),
     login: () => login(userState, userDb),
     register: () => register(userState, errorState, userDb),
+    findByUsername: (username: string) => findByUsername(username, userDb),
+    doesEmailExist: (email: string) => doesEmailExist(email, userDb),
   };
 };
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // Attached functions
 
-user.findByUsername = (
-  username: string
+const findByUsername = (
+  username: string,
+  userDb: UserDb
 ): Promise<{
   _id: ObjectId;
   username: string;
 }> => {
-  const userDb = UsersDatabase();
+  // const userDb = UsersDatabase();
 
   return new Promise((resolve, reject) => {
     if (typeof username != "string") {
@@ -226,8 +235,8 @@ user.findByUsername = (
   });
 };
 
-user.doesEmailExist = (email: string) => {
-  const userDb = UsersDatabase();
+const doesEmailExist = (email: string, userDb: UserDb): Promise<boolean> => {
+  // const userDb = UsersDatabase();
 
   return new Promise(async (rejects, resolve) => {
     if (typeof email != "string") {

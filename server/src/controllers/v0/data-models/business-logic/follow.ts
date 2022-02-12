@@ -47,7 +47,7 @@ const validate = async (
 };
 // =====================================================================
 const createFollow = (
-  followedUsername: string,
+  username: string,
   followDataState: () => [Follow, (newData: Follow) => void],
   errorState: () => [string[], (err: string) => void],
   followsDB: FollowDb,
@@ -56,6 +56,8 @@ const createFollow = (
   return new Promise(async (resolve, reject) => {
     const [followsData, setFollowData] = followDataState();
     const [errorData, addErrors] = errorState();
+
+    const followedUsername = cleanUp(username);
 
     await validate(
       "create",
@@ -81,7 +83,7 @@ const createFollow = (
 // =====================================================================
 
 const deleteFollow = (
-  followedUsername: string,
+  username: string,
   followDataState: () => [Follow, (newData: Follow) => void],
   errorState: () => [string[], (err: string) => void],
   followsDB: FollowDb,
@@ -90,6 +92,9 @@ const deleteFollow = (
   return new Promise(async (resolve, reject) => {
     const [followsData, setFollowData] = followDataState();
     const [errorData, addErrors] = errorState();
+
+    const followedUsername = cleanUp(username);
+
     await validate(
       "delete",
       followedUsername,
@@ -177,14 +182,14 @@ const countFollowingById = (id: ObjectId, followsDB: FollowDb) => {
   });
 };
 
-export const follow = (username: "string", authorId: ObjectId) => {
+export const follow = () => {
   const followsDB = FollowsDatabase();
   const usersDB = UsersDatabase();
-  const followedUsername = cleanUp(username);
 
-  const followsData: Follow = {
-    followedId: new ObjectId(""),
-    authorId,
+  let followsData: Follow;
+
+  const setFollowData = (data: Follow) => {
+    followsData = data;
   };
 
   const followDataState = (): [Follow, (newData: Follow) => void] => {
@@ -205,7 +210,8 @@ export const follow = (username: "string", authorId: ObjectId) => {
   };
 
   return {
-    createFollow: () =>
+    setFollowData,
+    createFollow: (followedUsername: "string") =>
       createFollow(
         followedUsername,
         followDataState,
@@ -213,7 +219,7 @@ export const follow = (username: "string", authorId: ObjectId) => {
         followsDB,
         usersDB
       ),
-    deleteFollow: () =>
+    deleteFollow: (followedUsername: "string") =>
       deleteFollow(
         followedUsername,
         followDataState,
