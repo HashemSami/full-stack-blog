@@ -119,27 +119,10 @@ const countsPostsByAuthor = (authorId: ObjectId, postDb: PostDb) => {
   });
 };
 
-// =====================================================================
-const getFeed = async (
-  visitorId: ObjectId,
-  postDb: PostDb,
-  followsDB: FollowDb
-) => {
-  // create an array of the user ids that the current user follows
-  const followedUsers = await followsDB.findFollowedUsers(visitorId);
-
-  const followedUsersIds = followedUsers?.map((followDoc) => {
-    return followDoc.followedId;
-  });
-
-  // look for posts where the author is in the above array of followed users
-  if (followedUsersIds) return await postDb.getFeedPosts(followedUsersIds);
-};
+// ====================================================================
 
 // =====================================================================
-export const post = (data: Post, userId: ObjectId) => {
-  const postsDb = PostDatabase();
-  const followsDb = FollowsDatabase();
+export const addContent = (data: Post, userId: ObjectId, postsDb: PostDb) => {
 
   const postData = cleanUp(data, userId);
   const getPostData = () => postData;
@@ -163,16 +146,23 @@ export const post = (data: Post, userId: ObjectId) => {
   return {
     createPost: () => createPost(postData, errorState, postsDb),
     updatePost: () => updatePost(postData, errorState, postsDb),
-    countsPostsByAuthor: (authorId: ObjectId) =>
-      countsPostsByAuthor(authorId, postsDb),
-    getFeed: (visitorId: ObjectId) => getFeed(visitorId, postsDb, followsDb),
   };
 };
+
+const post = () => {
+  const postsDb = PostDatabase();
+
+  return {
+    addContent:(data: Post,userId: ObjectId)=>addContent(data,userId,postsDb),
+    countsPostsByAuthor: (authorId: ObjectId) =>
+      countsPostsByAuthor(authorId, postsDb),
+    getFeed: (visitorId: ObjectId) => getFeed(visitorId, postsDb),
+  };
+}
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // Attached Functions
 
-post.findPostsByAuthorId = (authorId: ObjectId) => {
-  const postsDb = PostDatabase();
+const findPostsByAuthorId = (authorId: ObjectId, postsDb: PostDb) => {
 
   return new Promise(async (resolve, reject) => {
     if (typeof authorId != "string" || !ObjectId.isValid(authorId)) {
@@ -195,8 +185,8 @@ post.findPostsByAuthorId = (authorId: ObjectId) => {
 };
 
 // ===================================================================================
-post.findSingelPostById = (postId: ObjectId, visitorId: ObjectId) => {
-  const postsDb = PostDatabase();
+const findSingelPostById = (postId: ObjectId, visitorId: ObjectId, postsDb: PostDb) => {
+  // const postsDb = PostDatabase();
 
   return new Promise(async (resolve, reject) => {
     if (typeof postId != "string" || !ObjectId.isValid(postId)) {
@@ -214,8 +204,8 @@ post.findSingelPostById = (postId: ObjectId, visitorId: ObjectId) => {
 };
 
 // ===================================================================================
-post.deletePost = (postIdToDelete: ObjectId, currentUserId: ObjectId) => {
-  const postsDb = PostDatabase();
+const deletePost = (postIdToDelete: ObjectId, currentUserId: ObjectId, postsDb: PostDb) => {
+  // const postsDb = PostDatabase();
 
   return new Promise(async (resolve, reject) => {
     try {
@@ -235,8 +225,8 @@ post.deletePost = (postIdToDelete: ObjectId, currentUserId: ObjectId) => {
 
 // ===================================================================================
 
-post.searchPosts = (searchTerm: "string") => {
-  const postsDb = PostDatabase();
+const searchPosts = (searchTerm: "string",postsDb: PostDb) => {
+  // const postsDb = PostDatabase();
 
   return new Promise(async (resolve, reject) => {
     if (typeof searchTerm != "string") {
@@ -246,4 +236,24 @@ post.searchPosts = (searchTerm: "string") => {
     const posts = await postsDb.searchByTearm(searchTerm);
     resolve(posts);
   });
+};
+
+
+const getFeed = async (
+  visitorId: ObjectId,
+  postDb: PostDb,
+  // followsDB: FollowDb
+) => {
+  // const postsDb = PostDatabase();
+
+  const followsDB = FollowsDatabase()
+  // create an array of the user ids that the current user follows
+  const followedUsers = await followsDB.findFollowedUsers(visitorId);
+
+  const followedUsersIds = followedUsers?.map((followDoc) => {
+    return followDoc.followedId;
+  });
+
+  // look for posts where the author is in the above array of followed users
+  if (followedUsersIds) return await postDb.getFeedPosts(followedUsersIds);
 };
