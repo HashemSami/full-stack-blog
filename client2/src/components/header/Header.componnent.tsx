@@ -8,10 +8,12 @@ interface UserData {
   username: string;
 }
 
-const Header: FC = () => {
-  const [loogedIn, setLoggedIn] = useState<boolean>(
-    Boolean(localStorage.getItem("appNameToken"))
-  );
+interface HeaderProps {
+  loogedIn: boolean;
+  setLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+const Header: FC<HeaderProps> = ({ loogedIn, setLoggedIn }) => {
   const [userData, setUserData] = useState<UserData>();
 
   return (

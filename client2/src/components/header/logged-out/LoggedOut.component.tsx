@@ -22,7 +22,7 @@ const LoggedOut: FC<LoggedOutProps> = ({ setLoggedIn, setUserData }) => {
       console.log(username);
 
       const res: AxiosResponse<UserData, any> = await Axios.post(
-        "http://localhost:8000/api/v0/user/login",
+        "/user/login",
         {
           username,
           password,
@@ -54,7 +54,7 @@ const LoggedOut: FC<LoggedOutProps> = ({ setLoggedIn, setUserData }) => {
             type="text"
             placeholder="Username"
             autoComplete="off"
-            onChange={e => setUsername(e.target.value)}
+            onChange={(e) => setUsername(e.target.value)}
           />
         </div>
         <div className="col-md mr-0 pr-md-0 mb-3 mb-md-0">
@@ -63,7 +63,7 @@ const LoggedOut: FC<LoggedOutProps> = ({ setLoggedIn, setUserData }) => {
             className="form-control form-control-sm input-dark"
             type="password"
             placeholder="Password"
-            onChange={e => setPassword(e.target.value)}
+            onChange={(e) => setPassword(e.target.value)}
           />
         </div>
         <div className="col-md-auto">

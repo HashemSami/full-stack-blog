@@ -1,7 +1,7 @@
 import React, { FC, useState } from "react";
 import Container from "../container/Container.component";
 import { usePageTitle } from "../../hooks/usePageTitle";
-import Axios from "axios";
+import Axios, { AxiosResponse } from "axios";
 
 const HomeGuest: FC = () => {
   usePageTitle("Welcome!");
@@ -14,7 +14,7 @@ const HomeGuest: FC = () => {
     event.preventDefault();
     try {
       console.log(username);
-      await Axios.post("http://localhost:8000/api/v0/user/register", {
+      await Axios.post("/user/register", {
         username,
         email,
         password,
@@ -52,7 +52,7 @@ const HomeGuest: FC = () => {
                 type="text"
                 placeholder="Pick a username"
                 autoComplete="off"
-                onChange={e => setUsername(e.target.value)}
+                onChange={(e) => setUsername(e.target.value)}
               />
             </div>
             <div className="form-group">
@@ -66,7 +66,7 @@ const HomeGuest: FC = () => {
                 type="text"
                 placeholder="you@example.com"
                 autoComplete="off"
-                onChange={e => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
             <div className="form-group">
@@ -79,7 +79,7 @@ const HomeGuest: FC = () => {
                 className="form-control"
                 type="password"
                 placeholder="Create a password"
-                onChange={e => setPassword(e.target.value)}
+                onChange={(e) => setPassword(e.target.value)}
               />
             </div>
             <button

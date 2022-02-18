@@ -1,4 +1,5 @@
 import React, { FC, useEffect } from "react";
+import { Link } from "react-router-dom";
 
 interface LoggedOutProps {
   setLoggedIn: (bool: boolean) => void;
@@ -29,9 +30,9 @@ const LoggedIn: FC<LoggedOutProps> = ({ setLoggedIn }) => {
           src={localStorage.getItem("appNameAvatar") || ""}
         />
       </a>
-      <a className="btn btn-sm btn-success mr-2" href="/create-post">
+      <Link className="btn btn-sm btn-success mr-2" to="/create-post">
         Create Post
-      </a>
+      </Link>
       <button onClick={handleSignOut} className="btn btn-sm btn-secondary">
         Sign Out
       </button>

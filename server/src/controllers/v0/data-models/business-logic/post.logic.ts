@@ -20,7 +20,7 @@ const cleanUp = (postData: Post, userId: ObjectId): Post => {
       allowedTags: [],
       allowedAttributes: {},
     }),
-    body: sanitizeHTML(postData.title.trim(), {
+    body: sanitizeHTML(postData.body.trim(), {
       allowedTags: [],
       allowedAttributes: {},
     }),
@@ -53,6 +53,7 @@ const createPost = (
       // save post into database
       try {
         const info = await postDb.insertPost(postData);
+
         resolve(info?.insertedId);
       } catch (e) {
         addErrors("Please try again later.");
@@ -221,7 +222,7 @@ const getFeed = async (
   // create an array of the user ids that the current user follows
   const followedUsers = await followsDB.findFollowedUsers(visitorId);
 
-  const followedUsersIds = followedUsers?.map(followDoc => {
+  const followedUsersIds = followedUsers?.map((followDoc) => {
     return followDoc.followedId;
   });
 

@@ -1,12 +1,23 @@
 import React, { FC } from "react";
 import { usePageTitle } from "../../hooks/usePageTitle";
+import Container from "../../components/container/Container.component";
+import HomeGuest from "../../components/home-guest/HomeGuest.component";
 
-const HomePage: FC = () => {
+interface HomePageProps {
+  loogedIn: boolean;
+}
+
+const HomePage: FC<HomePageProps> = ({ loogedIn }) => {
   usePageTitle("Your Feed");
+
+  if (!loogedIn) {
+    return <HomeGuest />;
+  }
   return (
-    <>
+    <Container wide>
       <h2 className="text-center">
-        Hello <strong>brad</strong>, your feed is empty.
+        Hello <strong>{localStorage.getItem("appNameUsername")}</strong>, your
+        feed is empty.
       </h2>
       <p className="lead text-muted text-center">
         Your feed displays the latest posts from the people you follow. If you
@@ -14,7 +25,7 @@ const HomePage: FC = () => {
         the &ldquo;Search&rdquo; feature in the top menu bar to find content
         written by people with similar interests and then follow them.
       </p>
-    </>
+    </Container>
   );
 };
 

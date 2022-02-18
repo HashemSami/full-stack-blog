@@ -14,7 +14,7 @@ export const apiCreatePost = async (req: Req, res: Response) => {
 
     const newId = await newPost.createPost();
 
-    res.json(newId);
+    res.json(newId?.toString());
   } catch (errors) {
     res.json(errors);
   }

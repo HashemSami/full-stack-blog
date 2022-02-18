@@ -12,6 +12,8 @@ const config = {
   devtool: "source-map",
   devServer: {
     port: 3000,
+    historyApiFallback: true,
+    hot: true,
     static: {
       directory: path.join(__dirname, "src"),
     },

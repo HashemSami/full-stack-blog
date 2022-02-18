@@ -7,13 +7,13 @@ const postRouter: Router = Router();
 postRouter.get("/post/:id", postControllers.reactApiViewSingle);
 
 postRouter.post(
-  "/post/:id/edit",
+  "/:id/edit",
   userControllers.apiMustBeLoggedIn,
   postControllers.apiUpdatePost
 );
 
 postRouter.delete(
-  "/post/:id",
+  "/:id",
   userControllers.apiMustBeLoggedIn,
   postControllers.apiDelete
 );
