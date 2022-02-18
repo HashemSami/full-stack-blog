@@ -1,7 +1,7 @@
 import { Post, PostDb, FollowDb } from "../models";
 import { ObjectId } from "mongodb";
-import PostDatabase from "../data-layer/postAccess";
-import FollowsDatabase from "../data-layer/followAccess";
+import PostDatabase from "../data-layer/post.access";
+import FollowsDatabase from "../data-layer/follow.access";
 import sanitizeHTML from "sanitize-html";
 
 const cleanUp = (postData: Post, userId: ObjectId): Post => {
@@ -43,7 +43,7 @@ const createPost = (
   postData: Post,
   errorState: () => [string[], (err: string) => void],
   postDb: PostDb
-) => {
+): Promise<ObjectId | undefined> => {
   return new Promise(async (resolve, reject) => {
     const [errors, addErrors] = errorState();
 
@@ -69,7 +69,7 @@ const actuallyUpdatePost = (
   postData: Post,
   errorState: () => [string[], (err: string) => void],
   postDb: PostDb
-): Promise<string> => {
+): Promise<"success" | "failure"> => {
   return new Promise(async (resolve, reject) => {
     const [errors, addErrors] = errorState();
     validate(postData, addErrors);
@@ -88,7 +88,7 @@ const updatePost = (
   postData: Post,
   errorState: () => [string[], (err: string) => void],
   postDb: PostDb
-) => {
+): Promise<"success" | "failure"> => {
   return new Promise(async (resolve, reject) => {
     try {
       const post = await postDb.findBySingleId(postData._id, postData.authorId);
@@ -106,9 +106,10 @@ const updatePost = (
 };
 
 // =====================================================================
-
-// =====================================================================
-const countsPostsByAuthor = (authorId: ObjectId, postDb: PostDb) => {
+const countsPostsByAuthor = (
+  authorId: ObjectId,
+  postDb: PostDb
+): Promise<number | undefined> => {
   return new Promise(async (resolve, reject) => {
     if (typeof authorId != "string" || !ObjectId.isValid(authorId)) {
       reject();
@@ -121,9 +122,115 @@ const countsPostsByAuthor = (authorId: ObjectId, postDb: PostDb) => {
 
 // ====================================================================
 
-// =====================================================================
-export const addContent = (data: Post, userId: ObjectId, postsDb: PostDb) => {
+// Attached Functions
 
+const findPostsByAuthorId = (authorId: ObjectId, postsDb: PostDb) => {
+  return new Promise(async (resolve, reject) => {
+    if (typeof authorId != "string" || !ObjectId.isValid(authorId)) {
+      reject();
+      // to stop any further operations and exit from function
+      return;
+    }
+    try {
+      const posts = await postsDb.findByAuthorId(authorId);
+
+      if (posts?.length) {
+        resolve(posts);
+      } else {
+        reject();
+      }
+    } catch {
+      reject();
+    }
+  });
+};
+
+// ===================================================================================
+const findSingelPostById = (
+  postId: ObjectId,
+  visitorId: ObjectId,
+  postsDb: PostDb
+) => {
+  // const postsDb = PostDatabase();
+
+  return new Promise(async (resolve, reject) => {
+    if (typeof postId != "string" || !ObjectId.isValid(postId)) {
+      reject();
+      return;
+    }
+
+    try {
+      const post = await postsDb.findBySingleId(postId, visitorId);
+      resolve(post);
+    } catch {
+      reject();
+    }
+  });
+};
+
+// ===================================================================================
+const deletePost = (
+  postIdToDelete: ObjectId,
+  currentUserId: ObjectId,
+  postsDb: PostDb
+): Promise<"success"> => {
+  // const postsDb = PostDatabase();
+
+  return new Promise(async (resolve, reject) => {
+    try {
+      const post = await postsDb.findBySingleId(postIdToDelete, currentUserId);
+      if (post?.isVisitorOwner) {
+        const res = await postsDb.deletePostById(postIdToDelete);
+
+        resolve("success");
+      } else {
+        reject();
+      }
+    } catch (e) {
+      reject();
+    }
+  });
+};
+
+// ===================================================================================
+
+const searchPosts = (
+  searchTerm: string,
+  postsDb: PostDb
+): Promise<Post[] | undefined> => {
+  // const postsDb = PostDatabase();
+
+  return new Promise(async (resolve, reject) => {
+    if (typeof searchTerm != "string") {
+      reject();
+      return;
+    }
+    const posts = await postsDb.searchByTearm(searchTerm);
+    resolve(posts);
+  });
+};
+
+const getFeed = async (
+  visitorId: ObjectId,
+  postDb: PostDb
+  // followsDB: FollowDb
+) => {
+  // const postsDb = PostDatabase();
+
+  const followsDB = FollowsDatabase();
+  // create an array of the user ids that the current user follows
+  const followedUsers = await followsDB.findFollowedUsers(visitorId);
+
+  const followedUsersIds = followedUsers?.map(followDoc => {
+    return followDoc.followedId;
+  });
+
+  // look for posts where the author is in the above array of followed users
+  if (followedUsersIds) return await postDb.getFeedPosts(followedUsersIds);
+};
+
+// =====================================================================
+const addContent = (data: Post, userId: ObjectId, postsDb: PostDb) => {
   const postData = cleanUp(data, userId);
   const getPostData = () => postData;
   const PostState = (): [Post, (newData: Post) => void] => {
@@ -149,111 +256,28 @@ export const addContent = (data: Post, userId: ObjectId, postsDb: PostDb) => {
   };
 };
 
-const post = () => {
+export const post = () => {
   const postsDb = PostDatabase();
 
   return {
-    addContent:(data: Post,userId: ObjectId)=>addContent(data,userId,postsDb),
+    addContent: (data: Post, userId: ObjectId) =>
+      addContent(data, userId, postsDb),
+
     countsPostsByAuthor: (authorId: ObjectId) =>
       countsPostsByAuthor(authorId, postsDb),
+
+    findPostsByAuthorId: (authorId: ObjectId) =>
+      findPostsByAuthorId(authorId, postsDb),
+
+    findSingelPostById: (postId: ObjectId, visitorId: ObjectId) =>
+      findSingelPostById(postId, visitorId, postsDb),
+
+    searchPosts: (searchTerm: string) => searchPosts(searchTerm, postsDb),
+
+    deletePost: (postIdToDelete: ObjectId, currentUserId: ObjectId) =>
+      deletePost(postIdToDelete, currentUserId, postsDb),
+
     getFeed: (visitorId: ObjectId) => getFeed(visitorId, postsDb),
   };
-}
+};
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// Attached Functions
-
-const findPostsByAuthorId = (authorId: ObjectId, postsDb: PostDb) => {
-
-  return new Promise(async (resolve, reject) => {
-    if (typeof authorId != "string" || !ObjectId.isValid(authorId)) {
-      reject();
-      // to stop any further operations and exit from function
-      return;
-    }
-    try {
-      const posts = await postsDb.findByAuthorId(authorId);
-
-      if (posts?.length) {
-        resolve(posts);
-      } else {
-        reject();
-      }
-    } catch {
-      reject();
-    }
-  });
-};
-
-// ===================================================================================
-const findSingelPostById = (postId: ObjectId, visitorId: ObjectId, postsDb: PostDb) => {
-  // const postsDb = PostDatabase();
-
-  return new Promise(async (resolve, reject) => {
-    if (typeof postId != "string" || !ObjectId.isValid(postId)) {
-      reject();
-      return;
-    }
-
-    try {
-      const post = await postsDb.findBySingleId(postId, visitorId);
-      resolve(post);
-    } catch {
-      reject();
-    }
-  });
-};
-
-// ===================================================================================
-const deletePost = (postIdToDelete: ObjectId, currentUserId: ObjectId, postsDb: PostDb) => {
-  // const postsDb = PostDatabase();
-
-  return new Promise(async (resolve, reject) => {
-    try {
-      const post = await postsDb.findBySingleId(postIdToDelete, currentUserId);
-      if (post?.isVisitorOwner) {
-        const res = await postsDb.deletePostById(postIdToDelete);
-
-        resolve("success");
-      } else {
-        reject();
-      }
-    } catch (e) {
-      reject();
-    }
-  });
-};
-
-// ===================================================================================
-
-const searchPosts = (searchTerm: "string",postsDb: PostDb) => {
-  // const postsDb = PostDatabase();
-
-  return new Promise(async (resolve, reject) => {
-    if (typeof searchTerm != "string") {
-      reject();
-      return;
-    }
-    const posts = await postsDb.searchByTearm(searchTerm);
-    resolve(posts);
-  });
-};
-
-
-const getFeed = async (
-  visitorId: ObjectId,
-  postDb: PostDb,
-  // followsDB: FollowDb
-) => {
-  // const postsDb = PostDatabase();
-
-  const followsDB = FollowsDatabase()
-  // create an array of the user ids that the current user follows
-  const followedUsers = await followsDB.findFollowedUsers(visitorId);
-
-  const followedUsersIds = followedUsers?.map((followDoc) => {
-    return followDoc.followedId;
-  });
-
-  // look for posts where the author is in the above array of followed users
-  if (followedUsersIds) return await postDb.getFeedPosts(followedUsersIds);
-};

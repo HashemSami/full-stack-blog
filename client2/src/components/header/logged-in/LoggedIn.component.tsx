@@ -7,7 +7,12 @@ interface LoggedOutProps {
 const LoggedIn: FC<LoggedOutProps> = ({ setLoggedIn }) => {
   const handleSignOut = (
     event: React.MouseEvent<HTMLButtonElement, MouseEvent>
-  ) => {};
+  ) => {
+    setLoggedIn(false);
+    localStorage.removeItem("appNameToken");
+    localStorage.removeItem("appNameUsername");
+    localStorage.removeItem("appNameAvatar");
+  };
 
   return (
     <div className="flex-row my-3 my-md-0">
@@ -21,7 +26,7 @@ const LoggedIn: FC<LoggedOutProps> = ({ setLoggedIn }) => {
       <a href="#" className="mr-2">
         <img
           className="small-header-avatar"
-          src="https://gravatar.com/avatar/b9408a09298632b5151200f3449434ef?s=128"
+          src={localStorage.getItem("appNameAvatar") || ""}
         />
       </a>
       <a className="btn btn-sm btn-success mr-2" href="/create-post">

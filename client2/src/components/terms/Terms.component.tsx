@@ -1,10 +1,7 @@
 import React, { FC, useEffect } from "react";
 import Container from "../container/Container.component";
-import { usePageTitle } from "../../hooks/pageTitleHook";
 
 const Terms: FC = () => {
-  usePageTitle("Our Terms");
-
   return (
     <Container>
       <h2>Our Terms &amp; Conditions</h2>

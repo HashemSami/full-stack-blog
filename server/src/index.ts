@@ -1,14 +1,7 @@
-import { createServer } from "http";
+// import { createServer } from "http";
 import express, { Request, Response, Application } from "express";
 import { IndexRouter } from "./controllers/v0/index.router";
 import { connectToServer } from "./db";
-import { MongoClient, Db } from "mongodb";
-
-let dbConnection: Db | null = null;
-const getConn = () => dbConnection;
-const setConn = (dbConn: Db) => {
-  dbConnection = dbConn;
-};
 
 (async () => {
   const app: Application = express();
@@ -17,8 +10,8 @@ const setConn = (dbConn: Db) => {
   app.use(express.urlencoded({ extended: false }));
   app.use(express.json());
 
-  app.set("views", "../client-static/views");
-  app.set("view engine", "ejs");
+  // app.set("views", "../client-static/views");
+  // app.set("view engine", "ejs");
 
   app.use("/api/v0/", IndexRouter);
 
@@ -26,7 +19,7 @@ const setConn = (dbConn: Db) => {
     res.render("home-guest");
   });
 
-  const server = createServer(app);
+  // const server = createServer(app);
   const port = process.env.PORT;
 
   await connectToServer(() => {

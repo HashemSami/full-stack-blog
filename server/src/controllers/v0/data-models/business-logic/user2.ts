@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import { User, UserDb } from "../models";
 import { ObjectId } from "mongodb";
 
-import UserDatabase from "../data-layer/userAccess";
+import UserDatabase from "../data-layer/user.access";
 
 const getAvatar = (email: string) => {
   return `https://gravatar.com/avatar/${md5(email)}?s=128`;

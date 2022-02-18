@@ -1,9 +1,7 @@
 import React, { FC, useEffect } from "react";
 import Container from "../container/Container.component";
-import { usePageTitle } from "../../hooks/pageTitleHook";
 
 const About: FC = () => {
-  usePageTitle("About us");
   return (
     <Container>
       <h2>About Us</h2>

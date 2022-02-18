@@ -9,7 +9,9 @@ interface UserData {
 }
 
 const Header: FC = () => {
-  const [loogedIn, setLoggedIn] = useState<boolean>();
+  const [loogedIn, setLoggedIn] = useState<boolean>(
+    Boolean(localStorage.getItem("appNameToken"))
+  );
   const [userData, setUserData] = useState<UserData>();
 
   return (

@@ -4,9 +4,7 @@ import bcrypt from "bcryptjs";
 import { User, UserDb } from "../models";
 import { ObjectId } from "mongodb";
 
-import { stateHook } from "../../../../utils/Hooks";
-
-import UsersDatabase from "../data-layer/userAccess";
+import UsersDatabase from "../data-layer/user.access";
 
 const getAvatar = (email: string) => {
   return `https://gravatar.com/avatar/${md5(email)}?s=128`;
@@ -29,6 +27,7 @@ const cleanUp = (userData: User): User => {
     username: userData.username.trim().toLowerCase(),
     email: userData.email.trim().toLowerCase(),
     password: userData.password,
+    avatar: "",
   };
 };
 
@@ -103,13 +102,16 @@ const login = async (
 
     userDb
       .findByUsername(userData.username)
-      .then((attemptedUser) => {
+      .then(attemptedUser => {
         if (
           attemptedUser &&
           bcrypt.compareSync(userData.password, attemptedUser.password)
         ) {
           console.log("attemptedUser", attemptedUser);
-          setUserData(attemptedUser);
+          setUserData({
+            ...attemptedUser,
+            avatar: getAvatar(attemptedUser.email),
+          });
           // this.getAvatar()
           resolve("Congrats!");
         } else {
@@ -149,7 +151,12 @@ const register = async (
 
       const newId = createdUser ? createdUser.insertedId : userData._id;
 
-      setUserData({ ...userData, _id: newId, password: hashedPassword });
+      setUserData({
+        ...userData,
+        _id: newId,
+        password: hashedPassword,
+        avatar: getAvatar(userData.email),
+      });
       console.log("sucss", userData);
 
       resolve();
@@ -160,11 +167,68 @@ const register = async (
   });
 };
 
-// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-export const user = (data:User) => {
-  const userDb = UsersDatabase();
+// ==========================================================================
 
-  let userData: User=cleanUp(data);;
+// Attached functions
+
+const findByUsername = (
+  username: string,
+  userDb: UserDb
+): Promise<{
+  _id: ObjectId;
+  username: string;
+  avatar: string;
+}> => {
+  // const userDb = UsersDatabase();
+
+  return new Promise((resolve, reject) => {
+    if (typeof username != "string") {
+      reject();
+      return;
+    }
+
+    userDb
+      .findByUsername(username)
+      .then(userDoc => {
+        if (userDoc) {
+          const userData = {
+            _id: userDoc._id,
+            username: userDoc.username,
+            avatar: getAvatar(userDoc.email),
+          };
+          resolve(userData);
+        } else {
+          reject();
+        }
+      })
+      .catch(() => {
+        reject();
+      });
+  });
+};
+
+const doesEmailExist = (email: string, userDb: UserDb): Promise<boolean> => {
+  // const userDb = UsersDatabase();
+
+  return new Promise(async (rejects, resolve) => {
+    if (typeof email != "string") {
+      resolve(false);
+      return;
+    }
+
+    const user = await userDb.findByEmail(email);
+
+    if (user) {
+      resolve(true);
+    }
+    resolve(false);
+  });
+};
+
+// ==========================================================================
+
+const addContent = (data: User, userDb: UserDb) => {
+  let userData: User = cleanUp(data);
 
   const getUserData = () => userData;
 
@@ -193,56 +257,15 @@ export const user = (data:User) => {
 };
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// Attached functions
 
-user.findByUsername = (
-  username: string,
-): Promise<{
-  _id: ObjectId;
-  username: string;
-}> => {
+export const user = () => {
   const userDb = UsersDatabase();
 
-  return new Promise((resolve, reject) => {
-    if (typeof username != "string") {
-      reject();
-      return;
-    }
-
-    userDb
-      .findByUsername(username)
-      .then((userDoc) => {
-        if (userDoc) {
-          const userData = {
-            _id: userDoc._id,
-            username: userDoc.username,
-          };
-          resolve(userData);
-        } else {
-          reject();
-        }
-      })
-      .catch(() => {
-        reject();
-      });
-  });
+  return {
+    addContent: (data: User) => addContent(data, userDb),
+    findByUsername: (username: string) => findByUsername(username, userDb),
+    doesEmailExist: (email: string) => doesEmailExist(email, userDb),
+  };
 };
 
-
-user.doesEmailExist = (email: string): Promise<boolean> => {
-  const userDb = UsersDatabase();
-
-  return new Promise(async (rejects, resolve) => {
-    if (typeof email != "string") {
-      resolve(false);
-      return;
-    }
-
-    const user = await userDb.findByEmail(email);
-
-    if (user) {
-      resolve(true);
-    }
-    resolve(false);
-  });
-};
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

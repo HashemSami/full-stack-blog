@@ -4,6 +4,7 @@ import Axios, { AxiosResponse } from "axios";
 interface UserData {
   token: string;
   username: string;
+  avatar: string;
 }
 
 interface LoggedOutProps {
@@ -21,14 +22,18 @@ const LoggedOut: FC<LoggedOutProps> = ({ setLoggedIn, setUserData }) => {
       console.log(username);
 
       const res: AxiosResponse<UserData, any> = await Axios.post(
-        "http://localhost:8000/api/v0/users/login",
+        "http://localhost:8000/api/v0/user/login",
         {
           username,
           password,
         }
       );
+
       if (res.data) {
         console.log("user loggedin", res.data);
+        localStorage.setItem("appNameToken", res.data.token);
+        localStorage.setItem("appNameUsername", res.data.username);
+        localStorage.setItem("appNameAvatar", res.data.avatar);
         setLoggedIn(true);
         setUserData(res.data);
       } else {
@@ -49,7 +54,7 @@ const LoggedOut: FC<LoggedOutProps> = ({ setLoggedIn, setUserData }) => {
             type="text"
             placeholder="Username"
             autoComplete="off"
-            onChange={(e) => setUsername(e.target.value)}
+            onChange={e => setUsername(e.target.value)}
           />
         </div>
         <div className="col-md mr-0 pr-md-0 mb-3 mb-md-0">
@@ -58,7 +63,7 @@ const LoggedOut: FC<LoggedOutProps> = ({ setLoggedIn, setUserData }) => {
             className="form-control form-control-sm input-dark"
             type="password"
             placeholder="Password"
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={e => setPassword(e.target.value)}
           />
         </div>
         <div className="col-md-auto">

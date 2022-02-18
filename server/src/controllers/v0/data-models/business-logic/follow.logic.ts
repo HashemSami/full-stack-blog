@@ -1,7 +1,7 @@
 import { Follow, FollowDb, UserDb } from "../models";
 import { ObjectId } from "mongodb";
-import FollowsDatabase from "../data-layer/followAccess";
-import UsersDatabase from "../data-layer/userAccess";
+import FollowsDatabase from "../data-layer/follow.access";
+import UsersDatabase from "../data-layer/user.access";
 
 const cleanUp = (followedUsername: string) => {
   return typeof followedUsername != "string" ? "" : followedUsername;
@@ -117,13 +117,8 @@ const deleteFollow = (
 };
 // =====================================================================
 
-const isVisitorFollowing = async (
-  followDataState: () => [Follow, (newData: Follow) => void],
-  followsDB: FollowDb
-) => {
-  const [followsData, setFollowData] = followDataState();
-
-  const followDoc = await followsDB.findByFollowedId(followsData);
+const isVisitorFollowing = async (data: Follow, followsDB: FollowDb) => {
+  const followDoc = await followsDB.findByFollowedId(data);
 
   return !!followDoc;
 };
@@ -157,7 +152,10 @@ const getFollowingById = (id: ObjectId, followsDB: FollowDb) => {
 };
 // =====================================================================
 
-const countFollowersById = (id: ObjectId, followsDB: FollowDb) => {
+const countFollowersById = (
+  id: ObjectId,
+  followsDB: FollowDb
+): Promise<number | undefined> => {
   return new Promise(async (resolve, reject) => {
     try {
       const folowersCount = await followsDB.countFollowers(id);
@@ -170,7 +168,10 @@ const countFollowersById = (id: ObjectId, followsDB: FollowDb) => {
 };
 // =====================================================================
 
-const countFollowingById = (id: ObjectId, followsDB: FollowDb) => {
+const countFollowingById = (
+  id: ObjectId,
+  followsDB: FollowDb
+): Promise<number | undefined> => {
   return new Promise(async (resolve, reject) => {
     try {
       const count = await followsDB.countFollowing(id);
@@ -182,15 +183,10 @@ const countFollowingById = (id: ObjectId, followsDB: FollowDb) => {
   });
 };
 
-export const follow = () => {
-  const followsDB = FollowsDatabase();
+const addContent = (data: Follow, followsDB: FollowDb) => {
   const usersDB = UsersDatabase();
 
-  let followsData: Follow;
-
-  const setFollowData = (data: Follow) => {
-    followsData = data;
-  };
+  let followsData: Follow = data;
 
   const followDataState = (): [Follow, (newData: Follow) => void] => {
     const setFollowData = (newData: Follow) => {
@@ -210,8 +206,7 @@ export const follow = () => {
   };
 
   return {
-    setFollowData,
-    createFollow: (followedUsername: "string") =>
+    createFollow: (followedUsername: string) =>
       createFollow(
         followedUsername,
         followDataState,
@@ -219,7 +214,7 @@ export const follow = () => {
         followsDB,
         usersDB
       ),
-    deleteFollow: (followedUsername: "string") =>
+    deleteFollow: (followedUsername: string) =>
       deleteFollow(
         followedUsername,
         followDataState,
@@ -227,10 +222,18 @@ export const follow = () => {
         followsDB,
         usersDB
       ),
-    isVisitorFollowing: () => isVisitorFollowing(followDataState, followsDB),
+  };
+};
+
+export const follow = () => {
+  const followsDB = FollowsDatabase();
+
+  return {
+    addContent: (data: Follow) => addContent(data, followsDB),
+    isVisitorFollowing: (data: Follow) => isVisitorFollowing(data, followsDB),
     getFollowersById: (id: ObjectId) => getFollowersById(id, followsDB),
     getFollowingById: (id: ObjectId) => getFollowingById(id, followsDB),
     countFollowersById: (id: ObjectId) => countFollowersById(id, followsDB),
-    countFollowingById: (id: ObjectId) => countFollowersById(id, followsDB),
+    countFollowingById: (id: ObjectId) => countFollowingById(id, followsDB),
   };
 };
