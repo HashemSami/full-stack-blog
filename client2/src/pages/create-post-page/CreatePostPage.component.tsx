@@ -1,6 +1,9 @@
-import React, { FC, useState } from "react";
+import React, { FC, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePageTitle } from "../../hooks/usePageTitle";
+
+import { useActions } from "../../hooks/useActions";
+
 import Container from "../../components/container/Container.component";
 import Axios, { AxiosResponse } from "axios";
 
@@ -9,9 +12,14 @@ interface PostSubmit {
   body: string;
   token: string;
 }
+interface CreatePostProps {
+  addFlashmessages: (msg: string) => void;
+}
 
 const CreatePostPage: FC = () => {
   usePageTitle("Create New Post");
+
+  const { addFlashMessage } = useActions();
 
   const [postTitle, setPostTitle] = useState("");
   const [PostBody, setPostBody] = useState("");
@@ -25,6 +33,8 @@ const CreatePostPage: FC = () => {
         body: PostBody,
         token: localStorage.getItem("appNameToken") || "",
       });
+
+      addFlashMessage("Congrats, you created a post.");
 
       // redirect to the new post URL
       navigate(`/post/${res.data}`);
@@ -49,7 +59,7 @@ const CreatePostPage: FC = () => {
             type="text"
             placeholder=""
             autoComplete="off"
-            onChange={(e) => setPostTitle(e.target.value)}
+            onChange={e => setPostTitle(e.target.value)}
           />
         </div>
 
@@ -61,7 +71,7 @@ const CreatePostPage: FC = () => {
             name="body"
             id="post-body"
             className="body-content tall-textarea form-control"
-            onChange={(e) => setPostBody(e.target.value)}
+            onChange={e => setPostBody(e.target.value)}
           ></textarea>
         </div>
 

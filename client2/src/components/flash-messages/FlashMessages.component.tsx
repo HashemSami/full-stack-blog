@@ -1,12 +1,23 @@
 import React, { FC, useEffect } from "react";
 import Container from "../container/Container.component";
 
-const FlashMessages: FC = () => {
+interface FlashMessagesProps {
+  flashMessages: string[];
+}
+
+const FlashMessages: FC<FlashMessagesProps> = ({ flashMessages }) => {
   return (
     <div className="floating-alerts">
-      <div className="alert alert-success test-center floating-alert shadow-sm">
-        test
-      </div>
+      {flashMessages.map((msg, i) => {
+        return (
+          <div
+            key={i}
+            className="alert alert-success test-center floating-alert shadow-sm"
+          >
+            {msg}
+          </div>
+        );
+      })}
     </div>
   );
 };

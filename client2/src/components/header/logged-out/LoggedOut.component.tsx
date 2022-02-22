@@ -1,5 +1,6 @@
-import React, { FC, useState } from "react";
+import React, { FC, useState, useContext } from "react";
 import Axios, { AxiosResponse } from "axios";
+import { useActions } from "../../../hooks/useActions";
 
 interface UserData {
   token: string;
@@ -8,11 +9,12 @@ interface UserData {
 }
 
 interface LoggedOutProps {
-  setLoggedIn: (bool: boolean) => void;
   setUserData: (d: UserData) => void;
 }
 
-const LoggedOut: FC<LoggedOutProps> = ({ setLoggedIn, setUserData }) => {
+const LoggedOut: FC<LoggedOutProps> = ({ setUserData }) => {
+  const { login, logout } = useActions();
+
   const [username, setUsername] = useState<string>();
   const [password, setPassword] = useState<string>();
 
@@ -34,10 +36,11 @@ const LoggedOut: FC<LoggedOutProps> = ({ setLoggedIn, setUserData }) => {
         localStorage.setItem("appNameToken", res.data.token);
         localStorage.setItem("appNameUsername", res.data.username);
         localStorage.setItem("appNameAvatar", res.data.avatar);
-        setLoggedIn(true);
+        login();
+
         setUserData(res.data);
       } else {
-        setLoggedIn(false);
+        logout();
       }
     } catch (e) {
       console.log("there was an error");
@@ -54,7 +57,7 @@ const LoggedOut: FC<LoggedOutProps> = ({ setLoggedIn, setUserData }) => {
             type="text"
             placeholder="Username"
             autoComplete="off"
-            onChange={(e) => setUsername(e.target.value)}
+            onChange={e => setUsername(e.target.value)}
           />
         </div>
         <div className="col-md mr-0 pr-md-0 mb-3 mb-md-0">
@@ -63,7 +66,7 @@ const LoggedOut: FC<LoggedOutProps> = ({ setLoggedIn, setUserData }) => {
             className="form-control form-control-sm input-dark"
             type="password"
             placeholder="Password"
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={e => setPassword(e.target.value)}
           />
         </div>
         <div className="col-md-auto">

@@ -1,5 +1,8 @@
 import React, { FC } from "react";
 import { usePageTitle } from "../../hooks/usePageTitle";
+
+import { useTypedSelector } from "../../hooks/useSelector";
+
 import Container from "../../components/container/Container.component";
 import HomeGuest from "../../components/home-guest/HomeGuest.component";
 
@@ -7,8 +10,12 @@ interface HomePageProps {
   loogedIn: boolean;
 }
 
-const HomePage: FC<HomePageProps> = ({ loogedIn }) => {
+const HomePage: FC = () => {
   usePageTitle("Your Feed");
+
+  const loogedIn = useTypedSelector(
+    ({ userData: { isLoggedIn } }) => isLoggedIn
+  );
 
   if (!loogedIn) {
     return <HomeGuest />;

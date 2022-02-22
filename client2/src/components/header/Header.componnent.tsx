@@ -1,5 +1,8 @@
 import React, { FC, useState } from "react";
 import { Link } from "react-router-dom";
+
+import { useTypedSelector } from "../../hooks/useSelector";
+
 import LoggedOut from "./logged-out/LoggedOut.component";
 import LoggedIn from "./logged-in/LoggedIn.component";
 
@@ -9,12 +12,15 @@ interface UserData {
 }
 
 interface HeaderProps {
-  loogedIn: boolean;
-  setLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
+  loggedIn: boolean;
 }
 
-const Header: FC<HeaderProps> = ({ loogedIn, setLoggedIn }) => {
+const Header: FC = () => {
   const [userData, setUserData] = useState<UserData>();
+
+  const isLoggedIn = useTypedSelector(
+    ({ userData: { isLoggedIn } }) => isLoggedIn
+  );
 
   return (
     <header className="header-bar bg-primary mb-3">
@@ -24,11 +30,7 @@ const Header: FC<HeaderProps> = ({ loogedIn, setLoggedIn }) => {
             ComplexApp
           </Link>
         </h4>
-        {loogedIn ? (
-          <LoggedIn setLoggedIn={setLoggedIn} />
-        ) : (
-          <LoggedOut setLoggedIn={setLoggedIn} setUserData={setUserData} />
-        )}
+        {isLoggedIn ? <LoggedIn /> : <LoggedOut setUserData={setUserData} />}
       </div>
     </header>
   );

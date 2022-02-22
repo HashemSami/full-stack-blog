@@ -1,5 +1,8 @@
 import React, { FC, useState } from "react";
 import { Routes, Route } from "react-router-dom";
+
+import { useTypedSelector } from "../hooks/useSelector";
+
 import Header from "../components/header/Header.componnent";
 import Footer from "../components/footer/Footer.component";
 import HomePage from "./home-page/HomePage.component";
@@ -10,17 +13,18 @@ import ViewSinglePostPage from "./view-single-post-page/ViewSinglePostPage.compo
 import FlashMessages from "../components/flash-messages/FlashMessages.component";
 
 const MainPage: FC = () => {
-  const [loogedIn, setLoggedIn] = useState<boolean>(
-    Boolean(localStorage.getItem("appNameToken"))
+  const flashMessages = useTypedSelector(
+    ({ userData: { flashMessages } }) => flashMessages
   );
+
   return (
     <>
-      <FlashMessages />
+      <FlashMessages flashMessages={flashMessages} />
 
-      <Header loogedIn={loogedIn} setLoggedIn={setLoggedIn} />
+      <Header />
 
       <Routes>
-        <Route path="/" element={<HomePage loogedIn={loogedIn} />} />
+        <Route path="/" element={<HomePage />} />
         <Route path="/post/:id" element={<ViewSinglePostPage />} />
         <Route path="/create-post" element={<CreatePostPage />} />
         <Route path="/about-us" element={<AboutPage />} />

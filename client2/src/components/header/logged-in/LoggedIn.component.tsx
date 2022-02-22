@@ -1,18 +1,27 @@
-import React, { FC, useEffect } from "react";
+import React, { FC, useContext } from "react";
 import { Link } from "react-router-dom";
+import { useActions } from "../../../hooks/useActions";
+
+import { useNavigate } from "react-router-dom";
 
 interface LoggedOutProps {
   setLoggedIn: (bool: boolean) => void;
 }
 
-const LoggedIn: FC<LoggedOutProps> = ({ setLoggedIn }) => {
+const LoggedIn: FC = () => {
+  const { logout } = useActions();
+  const navigate = useNavigate();
+
   const handleSignOut = (
     event: React.MouseEvent<HTMLButtonElement, MouseEvent>
   ) => {
-    setLoggedIn(false);
+    logout();
+    // setUserlogging(false);
     localStorage.removeItem("appNameToken");
     localStorage.removeItem("appNameUsername");
     localStorage.removeItem("appNameAvatar");
+    // redirect to home guest
+    navigate(`/`);
   };
 
   return (
