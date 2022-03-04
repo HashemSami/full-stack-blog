@@ -6,20 +6,9 @@ import { useTypedSelector } from "../../hooks/useSelector";
 import LoggedOut from "./logged-out/LoggedOut.component";
 import LoggedIn from "./logged-in/LoggedIn.component";
 
-interface UserData {
-  token: string;
-  username: string;
-}
-
-interface HeaderProps {
-  loggedIn: boolean;
-}
-
 const Header: FC = () => {
-  const [userData, setUserData] = useState<UserData>();
-
   const isLoggedIn = useTypedSelector(
-    ({ userData: { isLoggedIn } }) => isLoggedIn
+    ({ currentUser: { isLoggedIn } }) => isLoggedIn
   );
 
   return (
@@ -30,7 +19,7 @@ const Header: FC = () => {
             ComplexApp
           </Link>
         </h4>
-        {isLoggedIn ? <LoggedIn /> : <LoggedOut setUserData={setUserData} />}
+        {isLoggedIn ? <LoggedIn /> : <LoggedOut />}
       </div>
     </header>
   );

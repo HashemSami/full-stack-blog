@@ -2,6 +2,7 @@ import { Follow, FollowDb, UserDb } from "../models";
 import { ObjectId } from "mongodb";
 import FollowsDatabase from "../data-layer/follow.access";
 import UsersDatabase from "../data-layer/user.access";
+import { getAvatar } from "./user.logic";
 
 const cleanUp = (followedUsername: string) => {
   return typeof followedUsername != "string" ? "" : followedUsername;
@@ -68,7 +69,7 @@ const createFollow = (
       usersDB
     );
 
-    if (errorData.length) {
+    if (!errorData.length) {
       const res = await followsDB.insertFollow(followsData);
 
       if (res?.acknowledged) {
@@ -104,7 +105,7 @@ const deleteFollow = (
       usersDB
     );
 
-    if (errorData.length) {
+    if (!errorData.length) {
       const res = await followsDB.deleteFollow(followsData);
 
       if (res?.acknowledged) {
@@ -128,9 +129,13 @@ const isVisitorFollowing = async (data: Follow, followsDB: FollowDb) => {
 const getFollowersById = (id: ObjectId, followsDB: FollowDb) => {
   return new Promise(async (resolve, reject) => {
     try {
-      const folowers = await followsDB.getFollowers(id);
+      let followers = await followsDB.getFollowers(id);
 
-      resolve(folowers);
+      followers = followers?.map(({ username, email }) => {
+        return { username, email, avatar: getAvatar(email) };
+      });
+
+      resolve(followers);
     } catch (e) {
       reject("no followers");
     }
@@ -142,9 +147,13 @@ const getFollowersById = (id: ObjectId, followsDB: FollowDb) => {
 const getFollowingById = (id: ObjectId, followsDB: FollowDb) => {
   return new Promise(async (resolve, reject) => {
     try {
-      const folowers = await followsDB.getFollowing(id);
+      let folowings = await followsDB.getFollowing(id);
 
-      resolve(folowers);
+      folowings = folowings?.map(({ username, email }) => {
+        return { username, email, avatar: getAvatar(email) };
+      });
+
+      resolve(folowings);
     } catch (e) {
       reject("no followers");
     }

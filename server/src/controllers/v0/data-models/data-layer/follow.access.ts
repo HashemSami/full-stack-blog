@@ -88,7 +88,7 @@ const FollowsDatabase = (): FollowDb => {
   ): Promise<{ username: string; email: string }[] | undefined> => {
     return await followCollection
       ?.aggregate<{ username: string; email: string }>([
-        { $match: { followedId: id } },
+        { $match: { authorId: id } },
         {
           $lookup: {
             from: "users",

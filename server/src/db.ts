@@ -19,6 +19,13 @@ export const connectToServer = async (callback: () => void) => {
 
     dbConnection = db.db("HashBlogApp");
 
+    // await dbConnection
+    //   .collection("posts")
+    //   .createIndex({ title: "text", body: "text" });
+
+    // const indexes = await dbConnection.collection("posts").indexes();
+    // console.log(indexes);
+
     console.log("Connected successfully to server");
     // console.log(dbConnection);
 

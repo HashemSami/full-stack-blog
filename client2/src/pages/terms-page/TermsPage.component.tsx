@@ -1,11 +1,13 @@
 import React, { FC } from "react";
 import Terms from "../../components/terms/Terms.component";
-import { usePageTitle } from "../../hooks/usePageTitle";
+import Page from "../../components/page/Page.component";
 
 const TermsPage: FC = () => {
-  usePageTitle("Our Terms");
-
-  return <Terms />;
+  return (
+    <Page title="Our Terms">
+      <Terms />
+    </Page>
+  );
 };
 
 export default TermsPage;

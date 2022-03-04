@@ -11,7 +11,7 @@ userRouter.post("/register", userControllers.apiRegister);
 userRouter.post("/login", userControllers.apiLogin);
 
 userRouter.post(
-  "/getHomeFeed",
+  "/get-home-feed",
   userControllers.apiMustBeLoggedIn,
   userControllers.apiGetHomeFeed
 );

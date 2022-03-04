@@ -1,5 +1,4 @@
-import React, { FC, useEffect } from "react";
-import Container from "../container/Container.component";
+import React, { FC } from "react";
 
 interface FlashMessagesProps {
   flashMessages: string[];

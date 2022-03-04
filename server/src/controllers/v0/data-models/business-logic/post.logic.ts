@@ -1,10 +1,10 @@
-import { Post, PostDb, FollowDb } from "../models";
+import { Post, PostItem, PostDb, FollowDb } from "../models";
 import { ObjectId } from "mongodb";
 import PostDatabase from "../data-layer/post.access";
 import FollowsDatabase from "../data-layer/follow.access";
 import sanitizeHTML from "sanitize-html";
 
-const cleanUp = (postData: Post, userId: ObjectId): Post => {
+const cleanUp = (postData: PostItem, userId: ObjectId): PostItem => {
   if (typeof postData.title != "string") {
     postData.title = "";
   }
@@ -14,8 +14,6 @@ const cleanUp = (postData: Post, userId: ObjectId): Post => {
 
   return {
     _id: postData._id,
-    author: postData.author,
-    isVisitorOwner: postData.isVisitorOwner,
     title: sanitizeHTML(postData.title.trim(), {
       allowedTags: [],
       allowedAttributes: {},
@@ -29,7 +27,7 @@ const cleanUp = (postData: Post, userId: ObjectId): Post => {
   };
 };
 
-const validate = (postData: Post, errors: (err: string) => void) => {
+const validate = (postData: PostItem, errors: (err: string) => void) => {
   if (postData.title === "") {
     errors("You must provide a title.");
   }
@@ -40,7 +38,7 @@ const validate = (postData: Post, errors: (err: string) => void) => {
 // =====================================================================
 
 const createPost = (
-  postData: Post,
+  postData: PostItem,
   errorState: () => [string[], (err: string) => void],
   postDb: PostDb
 ): Promise<ObjectId | undefined> => {
@@ -67,7 +65,7 @@ const createPost = (
 // =====================================================================
 
 const actuallyUpdatePost = (
-  postData: Post,
+  postData: PostItem,
   errorState: () => [string[], (err: string) => void],
   postDb: PostDb
 ): Promise<"success" | "failure"> => {
@@ -86,7 +84,7 @@ const actuallyUpdatePost = (
 };
 
 const updatePost = (
-  postData: Post,
+  postData: PostItem,
   errorState: () => [string[], (err: string) => void],
   postDb: PostDb
 ): Promise<"success" | "failure"> => {
@@ -112,8 +110,8 @@ const countsPostsByAuthor = (
   postDb: PostDb
 ): Promise<number | undefined> => {
   return new Promise(async (resolve, reject) => {
-    if (typeof authorId != "string" || !ObjectId.isValid(authorId)) {
-      reject();
+    if (!ObjectId.isValid(authorId)) {
+      reject("object not valid");
       return;
     }
     const postsCount = await postDb.countAuthorPosts(authorId);
@@ -127,8 +125,8 @@ const countsPostsByAuthor = (
 
 const findPostsByAuthorId = (authorId: ObjectId, postsDb: PostDb) => {
   return new Promise(async (resolve, reject) => {
-    if (typeof authorId != "string" || !ObjectId.isValid(authorId)) {
-      reject();
+    if (!ObjectId.isValid(authorId)) {
+      reject("object not valid");
       // to stop any further operations and exit from function
       return;
     }
@@ -138,7 +136,7 @@ const findPostsByAuthorId = (authorId: ObjectId, postsDb: PostDb) => {
       if (posts?.length) {
         resolve(posts);
       } else {
-        reject();
+        reject("[]");
       }
     } catch {
       reject();
@@ -155,7 +153,7 @@ const findSingelPostById = (
   // const postsDb = PostDatabase();
 
   return new Promise(async (resolve, reject) => {
-    if (typeof postId != "string" || !ObjectId.isValid(postId)) {
+    if (!ObjectId.isValid(postId)) {
       reject();
       return;
     }
@@ -174,7 +172,7 @@ const deletePost = (
   postIdToDelete: ObjectId,
   currentUserId: ObjectId,
   postsDb: PostDb
-): Promise<"success"> => {
+): Promise<"Success"> => {
   // const postsDb = PostDatabase();
 
   return new Promise(async (resolve, reject) => {
@@ -182,8 +180,9 @@ const deletePost = (
       const post = await postsDb.findBySingleId(postIdToDelete, currentUserId);
       if (post?.isVisitorOwner) {
         const res = await postsDb.deletePostById(postIdToDelete);
-
-        resolve("success");
+        if (res?.acknowledged) {
+          resolve("Success");
+        }
       } else {
         reject();
       }
@@ -207,22 +206,21 @@ const searchPosts = (
       return;
     }
     const posts = await postsDb.searchByTearm(searchTerm);
-    resolve(posts);
+
+    if (posts) {
+      resolve(posts);
+    }
+    reject([]);
   });
 };
 
-const getFeed = async (
-  visitorId: ObjectId,
-  postDb: PostDb
-  // followsDB: FollowDb
-) => {
-  // const postsDb = PostDatabase();
-
+const getFeed = async (visitorId: ObjectId, postDb: PostDb) => {
   const followsDB = FollowsDatabase();
+
   // create an array of the user ids that the current user follows
   const followedUsers = await followsDB.findFollowedUsers(visitorId);
 
-  const followedUsersIds = followedUsers?.map((followDoc) => {
+  const followedUsersIds = followedUsers?.map(followDoc => {
     return followDoc.followedId;
   });
 
@@ -231,11 +229,11 @@ const getFeed = async (
 };
 
 // =====================================================================
-const addContent = (data: Post, userId: ObjectId, postsDb: PostDb) => {
+const addContent = (data: PostItem, userId: ObjectId, postsDb: PostDb) => {
   const postData = cleanUp(data, userId);
   const getPostData = () => postData;
-  const PostState = (): [Post, (newData: Post) => void] => {
-    const setPostData = (newData: Post) => {
+  const PostState = (): [PostItem, (newData: PostItem) => void] => {
+    const setPostData = (newData: PostItem) => {
       Object.assign(postData, newData);
     };
 

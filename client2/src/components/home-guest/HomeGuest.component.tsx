@@ -1,11 +1,10 @@
 import React, { FC, useState } from "react";
-import Container from "../container/Container.component";
 import { usePageTitle } from "../../hooks/usePageTitle";
 import Axios, { AxiosResponse } from "axios";
 
-const HomeGuest: FC = () => {
-  usePageTitle("Welcome!");
+import Page from "../page/Page.component";
 
+const HomeGuest: FC = () => {
   const [username, setUsername] = useState<string>();
   const [email, setEmail] = useState<string>();
   const [password, setPassword] = useState<string>();
@@ -28,7 +27,7 @@ const HomeGuest: FC = () => {
   };
 
   return (
-    <Container wide>
+    <Page title="Welcome!" wide>
       <div className="row align-items-center">
         <div className="col-lg-7 py-3 py-md-5">
           <h1 className="display-3">Remember Writing?</h1>
@@ -52,7 +51,7 @@ const HomeGuest: FC = () => {
                 type="text"
                 placeholder="Pick a username"
                 autoComplete="off"
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={e => setUsername(e.target.value)}
               />
             </div>
             <div className="form-group">
@@ -66,7 +65,7 @@ const HomeGuest: FC = () => {
                 type="text"
                 placeholder="you@example.com"
                 autoComplete="off"
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={e => setEmail(e.target.value)}
               />
             </div>
             <div className="form-group">
@@ -79,7 +78,7 @@ const HomeGuest: FC = () => {
                 className="form-control"
                 type="password"
                 placeholder="Create a password"
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={e => setPassword(e.target.value)}
               />
             </div>
             <button
@@ -91,7 +90,7 @@ const HomeGuest: FC = () => {
           </form>
         </div>
       </div>
-    </Container>
+    </Page>
   );
 };
 

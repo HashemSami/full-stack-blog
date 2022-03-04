@@ -6,7 +6,7 @@ import { ObjectId } from "mongodb";
 
 import UsersDatabase from "../data-layer/user.access";
 
-const getAvatar = (email: string) => {
+export const getAvatar = (email: string) => {
   return `https://gravatar.com/avatar/${md5(email)}?s=128`;
 };
 

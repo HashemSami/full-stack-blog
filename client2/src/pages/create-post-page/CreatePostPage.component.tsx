@@ -1,11 +1,11 @@
 import React, { FC, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { usePageTitle } from "../../hooks/usePageTitle";
+import Axios, { AxiosResponse } from "axios";
 
 import { useActions } from "../../hooks/useActions";
+import { useTypedSelector } from "../../hooks/useSelector";
 
-import Container from "../../components/container/Container.component";
-import Axios, { AxiosResponse } from "axios";
+import Page from "../../components/page/Page.component";
 
 interface PostSubmit {
   title: string;
@@ -17,9 +17,8 @@ interface CreatePostProps {
 }
 
 const CreatePostPage: FC = () => {
-  usePageTitle("Create New Post");
-
   const { addFlashMessage } = useActions();
+  const token = useTypedSelector(({ currentUser: { token } }) => token);
 
   const [postTitle, setPostTitle] = useState("");
   const [PostBody, setPostBody] = useState("");
@@ -31,7 +30,7 @@ const CreatePostPage: FC = () => {
       const res = await Axios.post<any, any, PostSubmit>("/post/create-post", {
         title: postTitle,
         body: PostBody,
-        token: localStorage.getItem("appNameToken") || "",
+        token: token,
       });
 
       addFlashMessage("Congrats, you created a post.");
@@ -45,7 +44,7 @@ const CreatePostPage: FC = () => {
     }
   };
   return (
-    <Container wide>
+    <Page title="Create New Post" wide>
       <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label htmlFor="post-title" className="text-muted mb-1">
@@ -77,7 +76,7 @@ const CreatePostPage: FC = () => {
 
         <button className="btn btn-primary">Save New Post</button>
       </form>
-    </Container>
+    </Page>
   );
 };
 

@@ -1,49 +1,63 @@
-import React, { FC, useEffect } from "react";
-import { usePageTitle } from "../../hooks/usePageTitle";
-import Container from "../../components/container/Container.component";
+import React, { FC, useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { PostItem } from "../../models";
+import { getSinglePost } from "../../api/postApi";
+
+import Page from "../../components/page/Page.component";
+import PostView from "../../components/post-view/PostView.component";
+import LoadingDotIcon from "../../components/loading-dot-icon/LodingDotIcon.component";
+import NotFound from "../../components/not-found/NotFound.component";
 
 const ViewSinglePostPage: FC = () => {
-  usePageTitle("fake hard coded title");
+  const [isLoading, setIsLoading] = useState(true);
+  const [post, setPosts] = useState<PostItem>();
+
+  const { id } = useParams();
+
+  useEffect(() => {
+    const [sendRequest, requestToken] = getSinglePost(id || "");
+
+    const fetchSinglePost = async () => {
+      try {
+        if (sendRequest) {
+          const postItem = await sendRequest();
+
+          setPosts(postItem);
+          setIsLoading(false);
+        }
+      } catch (e) {
+        setIsLoading(false);
+        console.log("There was a problem");
+      }
+    };
+    fetchSinglePost();
+    // cleaning after the api call to prevent memory leaks
+    return () => {
+      requestToken?.cancel();
+    };
+  }, [id]);
+
+  if (!isLoading && !post) {
+    return (
+      <Page title="NotFound">
+        test
+        <NotFound />
+      </Page>
+    );
+  }
+
+  if (isLoading || !post) {
+    return (
+      <Page title="...">
+        <LoadingDotIcon />
+      </Page>
+    );
+  }
 
   return (
-    <Container>
-      <div className="d-flex justify-content-between">
-        <h2>Example Post Title</h2>
-        <span className="pt-2">
-          <a href="#" className="text-primary mr-2" title="Edit">
-            <i className="fas fa-edit"></i>
-          </a>
-          <a className="delete-post-button text-danger" title="Delete">
-            <i className="fas fa-trash"></i>
-          </a>
-        </span>
-      </div>
-      <p className="text-muted small mb-4">
-        <a href="#">
-          <img
-            className="avatar-tiny"
-            src="https://gravatar.com/avatar/b9408a09298632b5151200f3449434ef?s=128"
-          />
-        </a>
-        Posted by <a href="#">brad</a> on 2/10/2020
-      </p>
-      <div className="body-content">
-        <p>
-          Lorem ipsum dolor sit <strong>example</strong> post adipisicing elit.
-          Iure ea at esse, tempore qui possimus soluta impedit natus voluptate,
-          sapiente saepe modi est pariatur. Aut voluptatibus aspernatur fugiat
-          asperiores at.
-        </p>
-        <p>
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Beatae quod
-          asperiores corrupti omnis qui, placeat neque modi, dignissimos, ab
-          exercitationem eligendi culpa explicabo nulla tempora rem? Lorem ipsum
-          dolor sit amet consectetur adipisicing elit. Iure ea at esse, tempore
-          qui possimus soluta impedit natus voluptate, sapiente saepe modi est
-          pariatur. Aut voluptatibus aspernatur fugiat asperiores at.
-        </p>
-      </div>
-    </Container>
+    <Page title={post.title}>
+      <PostView post={post} />
+    </Page>
   );
 };
 

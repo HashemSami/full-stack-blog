@@ -1,11 +1,13 @@
 import React, { FC } from "react";
 import About from "../../components/about-us/About.component";
-import { usePageTitle } from "../../hooks/usePageTitle";
+import Page from "../../components/page/Page.component";
 
 const AboutPage: FC = () => {
-  usePageTitle("About us");
-
-  return <About />;
+  return (
+    <Page title="About Us">
+      <About />
+    </Page>
+  );
 };
 
 export default AboutPage;

@@ -5,13 +5,13 @@ import * as followControllers from "../controllers/follow.controller";
 const followRouter: Router = Router();
 
 followRouter.post(
-  "/addFollow/:username",
+  "/add-follow/:username",
   userControllers.apiMustBeLoggedIn,
   followControllers.apiAddFollow
 );
 
 followRouter.post(
-  "/removeFollow/:username",
+  "/remove-follow/:username",
   userControllers.apiMustBeLoggedIn,
   followControllers.apiRemoveFollow
 );

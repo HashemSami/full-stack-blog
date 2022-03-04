@@ -9,7 +9,7 @@ import { ObjectId } from "mongodb";
 export const apiAddFollow = async (req: Req, res: Response) => {
   try {
     const newFollow = follow().addContent({
-      followedId: new ObjectId(req.params.username),
+      followedId: req.apiUser?._id,
       authorId: req.apiUser?._id,
     });
 
@@ -17,6 +17,7 @@ export const apiAddFollow = async (req: Req, res: Response) => {
 
     res.json(true);
   } catch (errors) {
+    console.log(errors);
     res.json(false);
   }
 };
@@ -25,7 +26,7 @@ export const apiAddFollow = async (req: Req, res: Response) => {
 export const apiRemoveFollow = async (req: Req, res: Response) => {
   try {
     const newFollow = follow().addContent({
-      followedId: new ObjectId(req.params.username),
+      followedId: req.apiUser?._id,
       authorId: req.apiUser?._id,
     });
 

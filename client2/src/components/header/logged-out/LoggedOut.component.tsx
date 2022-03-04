@@ -12,39 +12,15 @@ interface LoggedOutProps {
   setUserData: (d: UserData) => void;
 }
 
-const LoggedOut: FC<LoggedOutProps> = ({ setUserData }) => {
+const LoggedOut: FC = () => {
   const { login, logout } = useActions();
 
-  const [username, setUsername] = useState<string>();
-  const [password, setPassword] = useState<string>();
+  const [username, setUsername] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    try {
-      console.log(username);
-
-      const res: AxiosResponse<UserData, any> = await Axios.post(
-        "/user/login",
-        {
-          username,
-          password,
-        }
-      );
-
-      if (res.data) {
-        console.log("user loggedin", res.data);
-        localStorage.setItem("appNameToken", res.data.token);
-        localStorage.setItem("appNameUsername", res.data.username);
-        localStorage.setItem("appNameAvatar", res.data.avatar);
-        login();
-
-        setUserData(res.data);
-      } else {
-        logout();
-      }
-    } catch (e) {
-      console.log("there was an error");
-    }
+    login(username, password);
   };
 
   return (

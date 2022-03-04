@@ -13,6 +13,7 @@ const tokenLasts = "365d";
 // ==========================================================================
 export const apiGetPostsByUsername = async (req: Request, res: Response) => {
   const username = req.params.username;
+
   if (req.params && req.params.username && typeof username === "string") {
     try {
       let authorDoc = await user().findByUsername(username);
@@ -21,10 +22,13 @@ export const apiGetPostsByUsername = async (req: Request, res: Response) => {
 
       res.json(posts);
     } catch (e) {
-      res.status(500).send("Sorry, invalid user requested.");
+      if (e == "[]") {
+        res.json([]);
+      } else {
+        res.status(500).send("Sorry, invalid user requested.");
+      }
     }
   }
-  res.status(500).send("Sorry, username is noe provided.");
 };
 
 // ==========================================================================
@@ -51,6 +55,7 @@ export const apiMustBeLoggedIn = (
       req.body.token,
       process.env.JWTSECRET || ""
     ) as jwt.JwtPayload;
+
     next();
   } catch (e) {
     res.status(500).send("Sorry, you must provide a valid token.");
@@ -103,18 +108,24 @@ export const sharedProfileData = async (
       authorId: viewerId,
     });
 
-    let postCountPromise = post().countsPostsByAuthor(profileUserId);
-    let followerCountPromise = follow().countFollowersById(profileUserId);
-    let followingCountPromise = follow().countFollowingById(profileUserId);
-    let [postCount, followerCount, followingCount] = await Promise.all([
-      postCountPromise,
-      followerCountPromise,
-      followingCountPromise,
-    ]);
+    // console.log("profileUserId", req.isFollowing);
 
-    req.postCount = postCount;
-    req.followerCount = followerCount;
-    req.followingCount = followingCount;
+    try {
+      let postCountPromise = post().countsPostsByAuthor(profileUserId);
+      let followerCountPromise = follow().countFollowersById(profileUserId);
+      let followingCountPromise = follow().countFollowingById(profileUserId);
+      let [postCount, followerCount, followingCount] = await Promise.all([
+        postCountPromise,
+        followerCountPromise,
+        followingCountPromise,
+      ]);
+
+      req.postCount = postCount;
+      req.followerCount = followerCount;
+      req.followingCount = followingCount;
+    } catch (e) {
+      console.log(e);
+    }
 
     next();
   }
@@ -173,6 +184,7 @@ export const apiLogin = async (
 export const apiGetHomeFeed = async (req: Req, res: Response) => {
   try {
     let posts = await post().getFeed(new ObjectId(req.apiUser?._id));
+
     res.json(posts);
   } catch (e) {
     res.status(500).send("Error");
@@ -222,12 +234,14 @@ export const profileFollowers = async (req: Req, res: Response) => {
 // ==========================================================================
 export const profileFollowing = async (req: Req, res: Response) => {
   try {
-    let following = await follow().getFollowersById(
+    let following = await follow().getFollowingById(
       new ObjectId(req.profileUser?._id)
     );
     //res.header("Cache-Control", "max-age=10").json(following)
     res.json(following);
   } catch (e) {
+    console.log(e);
+
     res.status(500).send("Error");
   }
 };

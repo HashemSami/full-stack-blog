@@ -1,5 +1,5 @@
 export enum UserActionTypes {
   LOGIN = "LOGIN",
   LOGOUT = "LOGOUT",
-  ADD_FLASH_MESSAGE = "ADD_FLASH_MESSAGE",
+  SET_USER_PROFILE = "SET_USER_PROFILE",
 }

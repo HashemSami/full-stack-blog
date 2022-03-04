@@ -4,7 +4,7 @@ import * as postControllers from "../controllers/post.controller";
 
 const postRouter: Router = Router();
 
-postRouter.get("/post/:id", postControllers.reactApiViewSingle);
+postRouter.get("/single-post/:id", postControllers.reactApiViewSingle);
 
 postRouter.post(
   "/:id/edit",
@@ -12,8 +12,8 @@ postRouter.post(
   postControllers.apiUpdatePost
 );
 
-postRouter.delete(
-  "/:id",
+postRouter.post(
+  "/:id/delete",
   userControllers.apiMustBeLoggedIn,
   postControllers.apiDelete
 );

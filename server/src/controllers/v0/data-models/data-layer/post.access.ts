@@ -1,5 +1,6 @@
 import { getDB } from "../../../../db";
-import { Post, PostDb } from "../models";
+import { PostItem, Post, PostDb } from "../models";
+import { getAvatar } from "../business-logic/user.logic";
 
 import {
   ObjectId,
@@ -9,14 +10,13 @@ import {
   ModifyResult,
   DeleteResult,
 } from "mongodb";
-import { resolve } from "path/posix";
 // import { dbConnection } from "../../../../index";
 
 const reusablePostQuery = (
   uniqueOperations: {}[],
   visitorId: ObjectId | "",
-  finalOperation: {}[],
-  postsCollection: Collection<Post> | undefined
+  finalOperation: {}[] = [],
+  postsCollection: Collection<PostItem> | undefined
 ): Promise<Post[] | undefined> => {
   return new Promise(async (resolve, reject) => {
     const aggOperations = uniqueOperations
@@ -25,7 +25,7 @@ const reusablePostQuery = (
         {
           $lookup: {
             from: "users",
-            localField: "author",
+            localField: "authorId",
             foreignField: "_id",
             as: "authorDocument",
           },
@@ -52,11 +52,14 @@ const reusablePostQuery = (
     // clean up author property in each post object
     // like removing the password field
     posts = posts?.map(post => {
-      post.isVisitorOwner = post.authorId.equals(visitorId);
-      // post.authorId = undefined
+      post.isVisitorOwner = post.author._id
+        ? post.author._id.equals(visitorId)
+        : false;
+      post.author._id = undefined;
 
       post.author = {
         username: post.author.username,
+        avatar: getAvatar(post.author.email || ""),
       };
 
       return post;
@@ -67,13 +70,13 @@ const reusablePostQuery = (
 };
 
 const PostDatabase = (): PostDb => {
-  const postsCollection: Collection<Post> | undefined =
+  const postsCollection: Collection<PostItem> | undefined =
     getDB()?.collection("posts");
 
   // await postsCollection?.createIndex({ title: "text", body: "text" });
   // =====================================================================
   const insertPost = async (
-    postData: Post
+    postData: PostItem
   ): Promise<InsertOneResult<Document> | undefined> => {
     try {
       return await postsCollection?.insertOne(postData);
@@ -88,7 +91,7 @@ const PostDatabase = (): PostDb => {
   ): Promise<Post | undefined> => {
     return new Promise(async (resolve, reject) => {
       const posts = await reusablePostQuery(
-        [{ $match: { _id: new ObjectId(id) } }],
+        [{ $match: { _id: id } }],
         visitorId,
         [],
         postsCollection
@@ -105,26 +108,22 @@ const PostDatabase = (): PostDb => {
   const findByAuthorId = (authorId: ObjectId): Promise<Post[] | undefined> => {
     return new Promise(async (resolve, reject) => {
       const posts = await reusablePostQuery(
-        [{ $match: { author: authorId } }, { $sort: { createdDate: -1 } }],
+        [{ $match: { authorId: authorId } }, { $sort: { createdDate: -1 } }],
         "",
         [],
         postsCollection
       );
 
-      if (posts?.length) {
-        resolve(posts);
-      } else {
-        reject();
-      }
+      resolve(posts);
     });
   };
   // =====================================================================
   const findOnePostAndUpdate = async (
     postId: ObjectId,
-    newPostData: Post
-  ): Promise<ModifyResult<Post> | undefined> => {
+    newPostData: PostItem
+  ): Promise<ModifyResult<PostItem> | undefined> => {
     return await postsCollection?.findOneAndUpdate(
-      { _id: new ObjectId(postId) },
+      { _id: postId },
       { $set: { title: newPostData.title, body: newPostData.body } }
     );
   };
@@ -133,7 +132,7 @@ const PostDatabase = (): PostDb => {
     postIdToDelete: ObjectId
   ): Promise<DeleteResult | undefined> => {
     return await postsCollection?.deleteOne({
-      _id: new ObjectId(postIdToDelete),
+      _id: postIdToDelete,
     });
   };
   // =====================================================================
@@ -142,31 +141,31 @@ const PostDatabase = (): PostDb => {
     searchTerm: string
   ): Promise<Post[] | undefined> => {
     return new Promise(async (resolve, reject) => {
-      const posts = await reusablePostQuery(
-        [{ $match: { $text: { $search: searchTerm } } }],
-        "",
-        [{ $sort: { score: { $meta: "textScore" } } }],
-        postsCollection
-      );
+      try {
+        const posts = await reusablePostQuery(
+          [{ $match: { $text: { $search: searchTerm } } }],
+          "",
+          [{ $sort: { score: { $meta: "textScore" } } }],
+          postsCollection
+        );
 
-      if (posts?.length) {
         resolve(posts);
-      } else {
-        reject();
+      } catch (e) {
+        console.log(e);
       }
     });
   };
   // =====================================================================
   const countAuthorPosts = async (authorId: ObjectId) => {
-    return await postsCollection?.countDocuments({ author: authorId });
+    return await postsCollection?.countDocuments({ authorId: authorId });
   };
   // =====================================================================
 
-  const getFeedPosts = (followedUsers: ObjectId[]): Promise<Post[]> => {
+  const getFeedPosts = (followedUsers: ObjectId[]): Promise<PostItem[]> => {
     return new Promise(async (resolve, reject) => {
       const posts = await reusablePostQuery(
         [
-          { $match: { author: { $in: followedUsers } } },
+          { $match: { authorId: { $in: followedUsers } } },
           { $sort: { createdDate: -1 } },
         ],
         "",
@@ -174,11 +173,7 @@ const PostDatabase = (): PostDb => {
         postsCollection
       );
 
-      if (posts?.length) {
-        resolve(posts);
-      } else {
-        reject();
-      }
+      resolve(posts || []);
     });
   };
 
