@@ -31,36 +31,41 @@ const HomePage: FC = () => {
 
   useEffect(() => {
     // setUserProfile(username || "", token);
-    const [sendRequest, requestToken] = getHomeFeed(token);
+    if (loogedIn) {
+      const [sendRequest, requestToken] = getHomeFeed(token);
 
-    const fetchData = async () => {
-      try {
-        if (sendRequest) {
-          const data = await sendRequest();
-          if (data) {
-            setState({
-              ...state,
-              isLoading: false,
-              feed: data,
-            });
+      const fetchData = async () => {
+        try {
+          if (sendRequest) {
+            const data = await sendRequest();
+            if (data) {
+              setState({
+                ...state,
+                isLoading: false,
+                feed: data,
+              });
+            }
           }
+        } catch (e) {
+          console.log("there was a problem");
         }
-      } catch (e) {
-        console.log("there was a problem");
-      }
-    };
+      };
 
-    fetchData();
-    return () => {
-      requestToken?.cancel();
-    };
-  }, []);
-
-  if (state.isLoading) return <LoadingDotIcon />;
+      fetchData();
+      return () => {
+        requestToken?.cancel();
+      };
+    }
+  }, [loogedIn]);
 
   if (!loogedIn) {
     return <HomeGuest />;
   }
+
+  if (state.isLoading) {
+    return <LoadingDotIcon />;
+  }
+
   return (
     <Page title="Your Feed" wide>
       {state.feed.length > 0 && (
@@ -69,7 +74,7 @@ const HomePage: FC = () => {
             The Latest From Those You Follow.
           </h2>
           <div className="list-group">
-            {state.feed.map(post => {
+            {state.feed.map((post) => {
               return (
                 <PostTitleView post={post} key={post._id} withAuthorName />
               );

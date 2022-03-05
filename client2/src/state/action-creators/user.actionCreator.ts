@@ -10,7 +10,6 @@ export const login = (username: string, password: string) => {
     const data = await loginUser(username, password);
 
     if (data) {
-      console.log("user loggedin", data);
       // localStorage.setItem("appNameToken", data.token);
       // localStorage.setItem("appNameUsername", data.username);
       // localStorage.setItem("appNameAvatar", data.avatar);

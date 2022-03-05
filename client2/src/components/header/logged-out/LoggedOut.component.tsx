@@ -1,5 +1,4 @@
-import React, { FC, useState, useContext } from "react";
-import Axios, { AxiosResponse } from "axios";
+import React, { FC, useState } from "react";
 import { useActions } from "../../../hooks/useActions";
 
 interface UserData {
@@ -13,7 +12,7 @@ interface LoggedOutProps {
 }
 
 const LoggedOut: FC = () => {
-  const { login, logout } = useActions();
+  const { login } = useActions();
 
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -33,7 +32,7 @@ const LoggedOut: FC = () => {
             type="text"
             placeholder="Username"
             autoComplete="off"
-            onChange={e => setUsername(e.target.value)}
+            onChange={(e) => setUsername(e.target.value)}
           />
         </div>
         <div className="col-md mr-0 pr-md-0 mb-3 mb-md-0">
@@ -42,7 +41,7 @@ const LoggedOut: FC = () => {
             className="form-control form-control-sm input-dark"
             type="password"
             placeholder="Password"
-            onChange={e => setPassword(e.target.value)}
+            onChange={(e) => setPassword(e.target.value)}
           />
         </div>
         <div className="col-md-auto">

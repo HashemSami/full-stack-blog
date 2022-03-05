@@ -1,6 +1,9 @@
 import React, { FC, useEffect, useRef, useState } from "react";
 import { useActions } from "../../hooks/useActions";
 import { useTypedSelector } from "../../hooks/useSelector";
+import { io, Socket } from "socket.io-client";
+
+const socket = io("http://localhost:8000");
 
 interface StateProps {
   fieldValue: string;
@@ -9,10 +12,11 @@ interface StateProps {
 
 const Chat: FC = () => {
   const { closeChat } = useActions();
-  const [username, avatar, isChatOpen] = useTypedSelector(
-    ({ currentUser: { username, avatar }, chat: { isChatOpen } }) => [
+  const [username, avatar, token, isChatOpen] = useTypedSelector(
+    ({ currentUser: { username, avatar, token }, chat: { isChatOpen } }) => [
       username,
       avatar,
+      token,
       isChatOpen,
     ]
   );
@@ -20,7 +24,7 @@ const Chat: FC = () => {
 
   const [state, setState] = useState<StateProps>({
     fieldValue: "",
-    chatMessages: [],
+    chatMessages: [{ username: "", avatar: "", message: "Chat Open" }],
   });
 
   useEffect(() => {
@@ -30,6 +34,16 @@ const Chat: FC = () => {
     }
   }, [isChatOpen]);
 
+  useEffect(() => {
+    socket.on("chatFromServer", (messageFromServer) => {
+      console.log(messageFromServer);
+      setState({
+        ...state,
+        chatMessages: [...state.chatMessages, messageFromServer],
+      });
+    });
+  }, []);
+
   const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setState({ ...state, fieldValue: e.target.value });
   };
@@ -37,6 +51,10 @@ const Chat: FC = () => {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // send message to chat server
+    socket.emit("chatFromBrowser", {
+      message: state.fieldValue,
+      token,
+    });
 
     // add message to state collection messages
     setState({
@@ -67,7 +85,7 @@ const Chat: FC = () => {
         {state.chatMessages.map((message, i) => {
           if (message.username == username) {
             return (
-              <div className="chat-self">
+              <div key={i} className="chat-self">
                 <div className="chat-message">
                   <div className="chat-message-inner">{message.message}</div>
                 </div>

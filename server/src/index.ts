@@ -5,6 +5,7 @@ import { connectToServer } from "./db";
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import sanitizeHTML from "sanitize-html";
+import cors from "cors";
 
 // import dotenv from "dotenv";
 
@@ -14,6 +15,7 @@ import sanitizeHTML from "sanitize-html";
   app.use(express.static("../client-static/public"));
   app.use(express.urlencoded({ extended: false }));
   app.use(express.json());
+  // app.use(cors());
 
   // app.set("views", "../client-static/views");
   // app.set("view engine", "ejs");
@@ -28,16 +30,15 @@ import sanitizeHTML from "sanitize-html";
   const server = require("http").createServer(app);
 
   const io = new Server(server, {
-    pingTimeout: 30000,
     cors: {
-      origin: "http://localhost:8080",
-      methods: ["GET", "POST"],
+      origin: "http://localhost:3000",
     },
   });
 
   io.on("connection", function (socket) {
     socket.on("chatFromBrowser", function (data) {
       try {
+        console.log(data);
         let user = jwt.verify(
           data.token,
           process.env.JWTSECRET || ""
@@ -60,7 +61,7 @@ import sanitizeHTML from "sanitize-html";
   const port = process.env.PORT;
 
   await connectToServer(() => {
-    app.listen(port, () => {
+    server.listen(port, () => {
       console.log(`server is listening on port ${port}`);
     });
   });
