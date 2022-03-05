@@ -141,10 +141,10 @@ export const apiRegister = async (
 
     await newUser.register();
 
-    const { _id, username, avatar, email } = newUser.getData();
+    const { _id, username, avatar } = newUser.getData();
 
     res.json({
-      token: jwt.sign({ _id, username, email }, process.env.JWTSECRET || "", {
+      token: jwt.sign({ _id, username, avatar }, process.env.JWTSECRET || "", {
         expiresIn: tokenLasts,
       }),
       _id,
@@ -169,7 +169,7 @@ export const apiLogin = async (
     const { _id, username, avatar } = newUser.getData();
 
     res.json({
-      token: jwt.sign({ _id, username }, process.env.JWTSECRET || "", {
+      token: jwt.sign({ _id, username, avatar }, process.env.JWTSECRET || "", {
         expiresIn: tokenLasts,
       }),
       username,

@@ -8,3 +8,7 @@ export const openChat = (): ChatActions => {
 export const closeChat = (): ChatActions => {
   return { type: ChatActionTypes.CLOSE_CHAT };
 };
+
+export const AddChatCount = (): ChatActions => {
+  return { type: ChatActionTypes.ADD_CHAT_COUNT };
+};

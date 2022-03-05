@@ -8,4 +8,8 @@ interface CloseChat {
   type: ChatActionTypes.CLOSE_CHAT;
 }
 
-export type ChatActions = OpenChat | CloseChat;
+interface AddChatCount {
+  type: ChatActionTypes.ADD_CHAT_COUNT;
+}
+
+export type ChatActions = OpenChat | CloseChat | AddChatCount;

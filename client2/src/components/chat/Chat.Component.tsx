@@ -1,13 +1,21 @@
 import React, { FC, useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { useActions } from "../../hooks/useActions";
 import { useTypedSelector } from "../../hooks/useSelector";
 import { io, Socket } from "socket.io-client";
+import {
+  ClientToServerEvents,
+  ServerToClientEvents,
+  SocketData,
+} from "../../models";
 
-const socket = io("http://localhost:8000");
+const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(
+  "http://localhost:8000"
+);
 
 interface StateProps {
   fieldValue: string;
-  chatMessages: { message: string; username: string; avatar: string }[];
+  chatMessages: SocketData[];
 }
 
 const Chat: FC = () => {
@@ -21,6 +29,7 @@ const Chat: FC = () => {
     ]
   );
   const chatInput = useRef<HTMLInputElement | null>(null);
+  const chatLog = useRef<HTMLDivElement | null>(null);
 
   const [state, setState] = useState<StateProps>({
     fieldValue: "",
@@ -35,14 +44,20 @@ const Chat: FC = () => {
   }, [isChatOpen]);
 
   useEffect(() => {
-    socket.on("chatFromServer", (messageFromServer) => {
-      console.log(messageFromServer);
-      setState({
-        ...state,
-        chatMessages: [...state.chatMessages, messageFromServer],
-      });
+    socket.on("chatFromServer", messageFromServer => {
+      setState(prevState => ({
+        ...prevState,
+        chatMessages: [...prevState.chatMessages, messageFromServer],
+      }));
     });
   }, []);
+
+  useEffect(() => {
+    if (!chatLog.current) return;
+    if (isChatOpen) {
+      chatLog.current.scrollTop = chatLog.current.scrollHeight;
+    }
+  }, [state.chatMessages]);
 
   const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setState({ ...state, fieldValue: e.target.value });
@@ -57,14 +72,14 @@ const Chat: FC = () => {
     });
 
     // add message to state collection messages
-    setState({
-      ...state,
+    setState(prevState => ({
+      ...prevState,
       chatMessages: [
-        ...state.chatMessages,
+        ...prevState.chatMessages,
         { message: state.fieldValue, username, avatar },
       ],
       fieldValue: "",
-    });
+    }));
   };
 
   return (
@@ -81,7 +96,7 @@ const Chat: FC = () => {
           <i className="fas fa-times-circle"></i>
         </span>
       </div>
-      <div id="chat" className="chat-log">
+      <div id="chat" className="chat-log" ref={chatLog}>
         {state.chatMessages.map((message, i) => {
           if (message.username == username) {
             return (
@@ -93,22 +108,21 @@ const Chat: FC = () => {
               </div>
             );
           }
-          <div className="chat-other">
-            <a href="#">
-              <img
-                className="avatar-tiny"
-                src="https://gravatar.com/avatar/b9216295c1e3931655bae6574ac0e4c2?s=128"
-              />
-            </a>
-            <div className="chat-message">
-              <div className="chat-message-inner">
-                <a href="#">
-                  <strong>barksalot:</strong>
-                </a>
-                Hey, I am good, how about you?
+          return (
+            <div className="chat-other">
+              <Link to={`/profile/${message.username}`}>
+                <img className="avatar-tiny" src={message.avatar} />
+              </Link>
+              <div className="chat-message">
+                <div className="chat-message-inner">
+                  <Link to={`/profile/${message.username}`}>
+                    <strong>{message.username}: </strong>
+                  </Link>{" "}
+                  {message.message}
+                </div>
               </div>
             </div>
-          </div>;
+          );
         })}
       </div>
       <form
