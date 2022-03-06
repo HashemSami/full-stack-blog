@@ -19,7 +19,7 @@ interface StateProps {
 }
 
 const Chat: FC = () => {
-  const { closeChat } = useActions();
+  const { closeChat, addUnreadChatCount, clearUnreadChatCount } = useActions();
   const [username, avatar, token, isChatOpen] = useTypedSelector(
     ({ currentUser: { username, avatar, token }, chat: { isChatOpen } }) => [
       username,
@@ -33,19 +33,20 @@ const Chat: FC = () => {
 
   const [state, setState] = useState<StateProps>({
     fieldValue: "",
-    chatMessages: [{ username: "", avatar: "", message: "Chat Open" }],
+    chatMessages: [],
   });
 
   useEffect(() => {
     if (!chatInput.current) return;
     if (isChatOpen) {
       chatInput.current.focus();
+      clearUnreadChatCount();
     }
   }, [isChatOpen]);
 
   useEffect(() => {
-    socket.on("chatFromServer", messageFromServer => {
-      setState(prevState => ({
+    socket.on("chatFromServer", (messageFromServer) => {
+      setState((prevState) => ({
         ...prevState,
         chatMessages: [...prevState.chatMessages, messageFromServer],
       }));
@@ -56,6 +57,9 @@ const Chat: FC = () => {
     if (!chatLog.current) return;
     if (isChatOpen) {
       chatLog.current.scrollTop = chatLog.current.scrollHeight;
+    }
+    if (!isChatOpen && state.chatMessages.length) {
+      addUnreadChatCount();
     }
   }, [state.chatMessages]);
 
@@ -72,7 +76,7 @@ const Chat: FC = () => {
     });
 
     // add message to state collection messages
-    setState(prevState => ({
+    setState((prevState) => ({
       ...prevState,
       chatMessages: [
         ...prevState.chatMessages,

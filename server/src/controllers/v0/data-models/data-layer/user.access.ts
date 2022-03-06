@@ -11,7 +11,11 @@ const UsersDatabase = (): UserDb => {
     userData: User
   ): Promise<InsertOneResult<Document> | undefined> => {
     try {
-      return await userCollection?.insertOne(userData);
+      return await userCollection?.insertOne({
+        email: userData.email,
+        username: userData.username,
+        password: userData.password,
+      });
     } catch (e) {
       console.log(e);
     }

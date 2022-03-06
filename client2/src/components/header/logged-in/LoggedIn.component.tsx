@@ -11,14 +11,15 @@ interface LoggedOutProps {
 }
 
 const LoggedIn: FC = () => {
-  const { logout, openSearch, openChat, closeChat } = useActions();
+  const { logout, openSearch, toggleChat, closeChat } = useActions();
   const navigate = useNavigate();
 
-  const [avatar, username, isChatOpen] = useTypedSelector(
-    ({ currentUser, chat: { isChatOpen } }) => [
+  const [avatar, username, isChatOpen, unreadChatCount] = useTypedSelector(
+    ({ currentUser, chat: { isChatOpen, unreadChatCount } }) => [
       currentUser.avatar,
       currentUser.username,
       isChatOpen,
+      unreadChatCount,
     ]
   );
 
@@ -38,11 +39,7 @@ const LoggedIn: FC = () => {
   };
 
   const handleChatIcon = () => {
-    if (isChatOpen) {
-      closeChat();
-    } else {
-      openChat();
-    }
+    toggleChat();
   };
 
   return (
@@ -58,13 +55,22 @@ const LoggedIn: FC = () => {
       </a>
       <ReactTooltip place="bottom" id="search" className="custom-tooltip" />{" "}
       <span
-        className="mr-2 header-chat-icon text-white"
+        className={
+          "mr-2 header-chat-icon " +
+          (unreadChatCount ? "text-danger" : "text-white")
+        }
         data-for="chat"
         data-tip="Chat"
         onClick={handleChatIcon}
       >
         <i className="fas fa-comment"></i>
-        <span className="chat-count-badge text-white"> </span>
+        {unreadChatCount ? (
+          <span className="chat-count-badge text-white">
+            {unreadChatCount < 10 ? unreadChatCount : "9+"}{" "}
+          </span>
+        ) : (
+          ""
+        )}
       </span>
       <ReactTooltip place="bottom" id="chat" className="custom-tooltip" />{" "}
       <Link

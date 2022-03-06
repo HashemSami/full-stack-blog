@@ -102,7 +102,7 @@ const login = async (
 
     userDb
       .findByUsername(userData.username)
-      .then(attemptedUser => {
+      .then((attemptedUser) => {
         if (
           attemptedUser &&
           bcrypt.compareSync(userData.password, attemptedUser.password)
@@ -189,7 +189,7 @@ const findByUsername = (
 
     userDb
       .findByUsername(username)
-      .then(userDoc => {
+      .then((userDoc) => {
         if (userDoc) {
           const userData = {
             _id: userDoc._id,
@@ -210,7 +210,7 @@ const findByUsername = (
 const doesEmailExist = (email: string, userDb: UserDb): Promise<boolean> => {
   // const userDb = UsersDatabase();
 
-  return new Promise(async (rejects, resolve) => {
+  return new Promise(async (resolve, reject) => {
     if (typeof email != "string") {
       resolve(false);
       return;
@@ -220,8 +220,9 @@ const doesEmailExist = (email: string, userDb: UserDb): Promise<boolean> => {
 
     if (user) {
       resolve(true);
+    } else {
+      resolve(false);
     }
-    resolve(false);
   });
 };
 

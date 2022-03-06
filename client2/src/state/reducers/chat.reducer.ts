@@ -16,10 +16,10 @@ const chatReducer = (
   action: ChatActions
 ): ChatState => {
   switch (action.type) {
-    case ChatActionTypes.OPEN_CHAT:
+    case ChatActionTypes.Toggle_CHAT:
       return {
         ...state,
-        isChatOpen: true,
+        isChatOpen: !state.isChatOpen,
       };
 
     case ChatActionTypes.CLOSE_CHAT:
@@ -28,10 +28,16 @@ const chatReducer = (
         isChatOpen: false,
       };
 
-    case ChatActionTypes.ADD_CHAT_COUNT:
+    case ChatActionTypes.ADD_UNREAD_CHAT_COUNT:
       return {
         ...state,
         unreadChatCount: state.unreadChatCount + 1,
+      };
+
+    case ChatActionTypes.CLEAR_UNREAD_CHAT_COUNT:
+      return {
+        ...state,
+        unreadChatCount: 0,
       };
     default:
       return state;

@@ -221,10 +221,10 @@ const EditPostPage: FC = () => {
             placeholder=""
             autoComplete="off"
             value={title.value}
-            onBlur={e =>
+            onBlur={(e) =>
               dispatch({ type: "titleRules", value: e.target.value })
             }
-            onChange={e =>
+            onChange={(e) =>
               dispatch({ type: "titleChange", value: e.target.value })
             }
           />
@@ -244,8 +244,10 @@ const EditPostPage: FC = () => {
             name="body"
             id="post-body"
             className="body-content tall-textarea form-control"
-            onBlur={e => dispatch({ type: "bodyRules", value: e.target.value })}
-            onChange={e =>
+            onBlur={(e) =>
+              dispatch({ type: "bodyRules", value: e.target.value })
+            }
+            onChange={(e) =>
               dispatch({ type: "bodyChange", value: e.target.value })
             }
           />

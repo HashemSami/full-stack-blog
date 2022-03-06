@@ -1,29 +1,119 @@
-import React, { FC, useState } from "react";
-import { usePageTitle } from "../../hooks/usePageTitle";
+import React, { FC, useState, useReducer, useEffect } from "react";
+import { CSSTransition } from "react-transition-group";
+
+import { doesUsernameExist, doesEmailExist } from "../../api/userApi";
+
+import { useRegisterReducer } from "./reducer";
+
 import Axios, { AxiosResponse } from "axios";
 
 import Page from "../page/Page.component";
 
 const HomeGuest: FC = () => {
-  const [username, setUsername] = useState<string>();
-  const [email, setEmail] = useState<string>();
-  const [password, setPassword] = useState<string>();
+  const [state, dispatch] = useRegisterReducer();
+
+  useEffect(() => {
+    if (state.username.value) {
+      const delay = setTimeout(
+        () => dispatch({ type: "usernameAfterDelay" }),
+        2000
+      );
+      return () => clearTimeout(delay);
+    }
+  }, [state.username.value]);
+
+  useEffect(() => {
+    if (state.email.value) {
+      const delay = setTimeout(
+        () => dispatch({ type: "emailAfterDelay" }),
+        2000
+      );
+      return () => clearTimeout(delay);
+    }
+  }, [state.email.value]);
+
+  useEffect(() => {
+    if (state.password.value) {
+      const delay = setTimeout(
+        () => dispatch({ type: "passwordAfterDelay" }),
+        2000
+      );
+      return () => clearTimeout(delay);
+    }
+  }, [state.password.value]);
+
+  useEffect(() => {
+    if (state.username.checkCount) {
+      // send axios request here
+
+      const [sendRequest, requestToken] = doesUsernameExist(
+        state.username.value
+      );
+
+      const sendSearchRequest = async () => {
+        try {
+          if (sendRequest) {
+            const isExist = await sendRequest();
+
+            dispatch({
+              type: "usernameUniqueResults",
+              value: isExist || false,
+            });
+          }
+        } catch (e) {
+          console.log("There was a problem");
+        }
+      };
+      sendSearchRequest();
+      // cleaning after the api call to prevent memory leaks
+      return () => {
+        requestToken?.cancel();
+      };
+    }
+  }, [state.username.checkCount]);
+
+  useEffect(() => {
+    if (state.email.checkCount) {
+      // send axios request here
+      console.log(state.email.value);
+      const [sendRequest, requestToken] = doesEmailExist(state.email.value);
+
+      const sendSearchRequest = async () => {
+        try {
+          if (sendRequest) {
+            const isExist = await sendRequest();
+
+            dispatch({
+              type: "emailUniqueResults",
+              value: isExist || false,
+            });
+          }
+        } catch (e) {
+          console.log("There was a problem");
+        }
+      };
+      sendSearchRequest();
+      // cleaning after the api call to prevent memory leaks
+      return () => {
+        requestToken?.cancel();
+      };
+    }
+  }, [state.email.checkCount]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    try {
-      console.log(username);
-      await Axios.post("/user/register", {
-        username,
-        email,
-        password,
-      });
-      // const res = await Axios.get("http://localhost:8000/api/v0");
-      console.log("user created");
-      // console.log(res.data);
-    } catch (e) {
-      console.log("there was an error");
-    }
+    // try {
+    //   console.log(username);
+    //   await Axios.post("/user/register", {
+    //     username,
+    //     email,
+    //     password,
+    //   });
+    //   console.log("user created");
+    //   // console.log(res.data);
+    // } catch (e) {
+    //   console.log("there was an error");
+    // }
   };
 
   return (
@@ -51,8 +141,23 @@ const HomeGuest: FC = () => {
                 type="text"
                 placeholder="Pick a username"
                 autoComplete="off"
-                onChange={e => setUsername(e.target.value)}
+                onChange={(e) =>
+                  dispatch({
+                    type: "usernameImmediately",
+                    value: e.target.value,
+                  })
+                }
               />
+              <CSSTransition
+                in={state.username.hasErrors}
+                timeout={330}
+                classNames="liveValidateMessage"
+                unmountOnExit
+              >
+                <div className="alert alert-danger small liveValidateMessage">
+                  {state.username.message}
+                </div>
+              </CSSTransition>
             </div>
             <div className="form-group">
               <label htmlFor="email-register" className="text-muted mb-1">
@@ -65,8 +170,20 @@ const HomeGuest: FC = () => {
                 type="text"
                 placeholder="you@example.com"
                 autoComplete="off"
-                onChange={e => setEmail(e.target.value)}
+                onChange={(e) =>
+                  dispatch({ type: "emailImmediately", value: e.target.value })
+                }
               />
+              <CSSTransition
+                in={state.email.hasErrors}
+                timeout={330}
+                classNames="liveValidateMessage"
+                unmountOnExit
+              >
+                <div className="alert alert-danger small liveValidateMessage">
+                  {state.email.message}
+                </div>
+              </CSSTransition>
             </div>
             <div className="form-group">
               <label htmlFor="password-register" className="text-muted mb-1">
@@ -78,7 +195,12 @@ const HomeGuest: FC = () => {
                 className="form-control"
                 type="password"
                 placeholder="Create a password"
-                onChange={e => setPassword(e.target.value)}
+                onChange={(e) =>
+                  dispatch({
+                    type: "passwordImmediately",
+                    value: e.target.value,
+                  })
+                }
               />
             </div>
             <button

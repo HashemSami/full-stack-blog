@@ -76,12 +76,12 @@ export const doesUsernameExist = (req: Request, res: Response) => {
 
 // ==========================================================================
 export const doesEmailExist = async (req: Request, res: Response) => {
-  // try{
-  let emailBool = await user().doesEmailExist(req.body.email);
-  res.json(emailBool);
-  // }catch(e){
-  //   res.status(500).send("Sorry, you must provide a valid token.")
-  // }
+  try {
+    let emailBool = await user().doesEmailExist(req.body.email);
+    res.json(emailBool);
+  } catch (e) {
+    res.status(500).send("Sorry, you must provide a valid token.");
+  }
 };
 
 // ==========================================================================

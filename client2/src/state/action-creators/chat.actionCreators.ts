@@ -1,14 +1,18 @@
 import { ChatActions } from "../actions";
 import { ChatActionTypes } from "../action-types";
 
-export const openChat = (): ChatActions => {
-  return { type: ChatActionTypes.OPEN_CHAT };
+export const toggleChat = (): ChatActions => {
+  return { type: ChatActionTypes.Toggle_CHAT };
 };
 
 export const closeChat = (): ChatActions => {
   return { type: ChatActionTypes.CLOSE_CHAT };
 };
 
-export const AddChatCount = (): ChatActions => {
-  return { type: ChatActionTypes.ADD_CHAT_COUNT };
+export const addUnreadChatCount = (): ChatActions => {
+  return { type: ChatActionTypes.ADD_UNREAD_CHAT_COUNT };
+};
+
+export const clearUnreadChatCount = (): ChatActions => {
+  return { type: ChatActionTypes.CLEAR_UNREAD_CHAT_COUNT };
 };

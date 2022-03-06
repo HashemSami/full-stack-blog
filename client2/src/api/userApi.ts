@@ -126,9 +126,68 @@ export const getHomeFeed = (
         `/user/get-home-feed`,
         {
           token,
+        },
+        {
+          cancelToken: requestToken.token,
         }
       );
 
+      return res.data;
+    };
+
+    return [sendRequest, requestToken];
+  } catch (e) {
+    console.log("there was an error");
+    return [];
+  }
+};
+
+export const doesUsernameExist = (
+  username: string
+): [() => Promise<boolean | undefined>, CancelTokenSource] | [] => {
+  try {
+    const requestToken = Axios.CancelToken.source();
+
+    const sendRequest = async () => {
+      const res: AxiosResponse<boolean, any> = await Axios.post(
+        `/user/doesUsernameExist`,
+        {
+          username,
+        },
+        {
+          cancelToken: requestToken.token,
+        }
+      );
+
+      console.log(res.data);
+      return res.data;
+    };
+
+    return [sendRequest, requestToken];
+  } catch (e) {
+    console.log("there was an error");
+    return [];
+  }
+};
+
+export const doesEmailExist = (
+  email: string
+): [() => Promise<boolean | undefined>, CancelTokenSource] | [] => {
+  try {
+    const requestToken = Axios.CancelToken.source();
+
+    const sendRequest = async () => {
+      const res: AxiosResponse<boolean, any> = await Axios.post(
+        `/user/doesEmailExist`,
+        {
+          email,
+        },
+        {
+          cancelToken: requestToken.token,
+        }
+      );
+
+      console.log(res.data);
       return res.data;
     };
 
