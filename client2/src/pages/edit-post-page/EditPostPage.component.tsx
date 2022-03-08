@@ -1,113 +1,17 @@
-import React, { FC, useEffect, useReducer } from "react";
-import { Link, useParams, useNavigate } from "react-router-dom";
-import { PostItem } from "../../models";
+import React, { FC, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { getSinglePost, editPost } from "../../api/postApi";
 import { useTypedSelector } from "../../hooks/useSelector";
 import { useActions } from "../../hooks/useActions";
-
+import { useEditPostReducer } from "./editPostReducer";
 import Page from "../../components/page/Page.component";
 import LoadingDotIcon from "../../components/loading-dot-icon/LodingDotIcon.component";
 import NotFound from "../../components/not-found/NotFound.component";
 
-type EditActions =
-  | { type: "fetchComplete"; value: PostItem }
-  | {
-      type: "titleChange" | "bodyChange" | "titleRules" | "bodyRules";
-      value: string;
-    }
-  | {
-      type:
-        | "submitRequest"
-        | "saveRequestStarted"
-        | "saveRequestFinished"
-        | "notFound";
-    };
-
 const EditPostPage: FC = () => {
   const navigate = useNavigate();
 
-  const initialState = {
-    title: {
-      value: "",
-      hasErrors: false,
-      message: "",
-    },
-    body: {
-      value: "",
-      hasErrors: false,
-      message: "",
-    },
-    isFetching: true,
-    isSaving: false,
-    id: useParams().id,
-    sendCount: 0,
-    notFound: false,
-  };
-
-  const reducer = (
-    state: typeof initialState,
-    action: EditActions
-  ): typeof initialState => {
-    switch (action.type) {
-      case "fetchComplete":
-        return {
-          ...state,
-          title: { ...state.title, value: action.value.title },
-          body: { ...state.body, value: action.value.body },
-          isFetching: false,
-        };
-      case "titleChange":
-        return {
-          ...state,
-          title: { ...state.title, value: action.value, hasErrors: false },
-        };
-      case "bodyChange":
-        return {
-          ...state,
-          body: { ...state.body, value: action.value, hasErrors: false },
-        };
-      case "submitRequest":
-        if (!state.title.hasErrors && !state.body.hasErrors) {
-          return { ...state, sendCount: state.sendCount + 1 };
-        }
-      case "saveRequestStarted":
-        if (!state.title.hasErrors && !state.body.hasErrors) {
-          return { ...state, isSaving: true };
-        }
-      case "saveRequestFinished":
-        return { ...state, isSaving: false };
-      case "titleRules":
-        if (!action.value.trim()) {
-          return {
-            ...state,
-            title: {
-              ...state.title,
-              hasErrors: true,
-              message: "You must provide a title.",
-            },
-          };
-        }
-        return state;
-      case "bodyRules":
-        if (!action.value.trim()) {
-          return {
-            ...state,
-            body: {
-              ...state.body,
-              hasErrors: true,
-              message: "You must provide a title.",
-            },
-          };
-        }
-        return state;
-      case "notFound":
-        return { ...state, notFound: true };
-      default:
-        return state;
-    }
-  };
-
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const [state, dispatch] = useEditPostReducer();
 
   const { id, isFetching, title, body, sendCount, isSaving, notFound } = state;
 
@@ -221,10 +125,10 @@ const EditPostPage: FC = () => {
             placeholder=""
             autoComplete="off"
             value={title.value}
-            onBlur={(e) =>
+            onBlur={e =>
               dispatch({ type: "titleRules", value: e.target.value })
             }
-            onChange={(e) =>
+            onChange={e =>
               dispatch({ type: "titleChange", value: e.target.value })
             }
           />
@@ -244,16 +148,14 @@ const EditPostPage: FC = () => {
             name="body"
             id="post-body"
             className="body-content tall-textarea form-control"
-            onBlur={(e) =>
-              dispatch({ type: "bodyRules", value: e.target.value })
-            }
-            onChange={(e) =>
+            onBlur={e => dispatch({ type: "bodyRules", value: e.target.value })}
+            onChange={e =>
               dispatch({ type: "bodyChange", value: e.target.value })
             }
           />
           {body.hasErrors && (
             <div className="alert alert-danger small liveValidateMessage">
-              Error should go here
+              You ust provide a content
             </div>
           )}
         </div>

@@ -1,16 +1,19 @@
-import React, { FC, useState, useReducer, useEffect } from "react";
+import React, { FC, useEffect } from "react";
 import { CSSTransition } from "react-transition-group";
+import { useActions } from "../../hooks/useActions";
 
-import { doesUsernameExist, doesEmailExist } from "../../api/userApi";
-
-import { useRegisterReducer } from "./reducer";
-
-import Axios, { AxiosResponse } from "axios";
+import {
+  doesUsernameExist,
+  doesEmailExist,
+  registerUser,
+} from "../../api/userApi";
+import { useRegisterReducer } from "./registerReducer";
 
 import Page from "../page/Page.component";
 
 const HomeGuest: FC = () => {
   const [state, dispatch] = useRegisterReducer();
+  const { login, addFlashMessage } = useActions();
 
   useEffect(() => {
     if (state.username.value) {
@@ -50,7 +53,7 @@ const HomeGuest: FC = () => {
         state.username.value
       );
 
-      const sendSearchRequest = async () => {
+      const usernameCheckRequest = async () => {
         try {
           if (sendRequest) {
             const isExist = await sendRequest();
@@ -64,7 +67,7 @@ const HomeGuest: FC = () => {
           console.log("There was a problem");
         }
       };
-      sendSearchRequest();
+      usernameCheckRequest();
       // cleaning after the api call to prevent memory leaks
       return () => {
         requestToken?.cancel();
@@ -78,7 +81,7 @@ const HomeGuest: FC = () => {
       console.log(state.email.value);
       const [sendRequest, requestToken] = doesEmailExist(state.email.value);
 
-      const sendSearchRequest = async () => {
+      const emailCheckRequest = async () => {
         try {
           if (sendRequest) {
             const isExist = await sendRequest();
@@ -92,7 +95,7 @@ const HomeGuest: FC = () => {
           console.log("There was a problem");
         }
       };
-      sendSearchRequest();
+      emailCheckRequest();
       // cleaning after the api call to prevent memory leaks
       return () => {
         requestToken?.cancel();
@@ -100,20 +103,46 @@ const HomeGuest: FC = () => {
     }
   }, [state.email.checkCount]);
 
+  useEffect(() => {
+    if (state.submitCount) {
+      // send axios request here
+
+      const [sendRequest, requestToken] = registerUser(
+        state.username.value,
+        state.email.value,
+        state.password.value
+      );
+
+      const registerRequest = async () => {
+        try {
+          if (sendRequest) {
+            const userData = await sendRequest();
+            if (userData) {
+              login(userData.token, userData.username, userData.avatar);
+              addFlashMessage("welcomr to your new account!");
+            }
+          }
+        } catch (e) {
+          console.log("There was a problem");
+        }
+      };
+      registerRequest();
+      // cleaning after the api call to prevent memory leaks
+      return () => {
+        requestToken?.cancel();
+      };
+    }
+  }, [state.submitCount]);
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    // try {
-    //   console.log(username);
-    //   await Axios.post("/user/register", {
-    //     username,
-    //     email,
-    //     password,
-    //   });
-    //   console.log("user created");
-    //   // console.log(res.data);
-    // } catch (e) {
-    //   console.log("there was an error");
-    // }
+    dispatch({ type: "usernameImmediately", value: state.username.value });
+    dispatch({ type: "usernameAfterDelay", noRequest: true });
+    dispatch({ type: "emailImmediately", value: state.email.value });
+    dispatch({ type: "emailAfterDelay", noRequest: true });
+    dispatch({ type: "passwordImmediately", value: state.password.value });
+    dispatch({ type: "passwordAfterDelay" });
+    dispatch({ type: "submitForm" });
   };
 
   return (
@@ -141,7 +170,7 @@ const HomeGuest: FC = () => {
                 type="text"
                 placeholder="Pick a username"
                 autoComplete="off"
-                onChange={(e) =>
+                onChange={e =>
                   dispatch({
                     type: "usernameImmediately",
                     value: e.target.value,
@@ -170,7 +199,7 @@ const HomeGuest: FC = () => {
                 type="text"
                 placeholder="you@example.com"
                 autoComplete="off"
-                onChange={(e) =>
+                onChange={e =>
                   dispatch({ type: "emailImmediately", value: e.target.value })
                 }
               />
@@ -195,13 +224,23 @@ const HomeGuest: FC = () => {
                 className="form-control"
                 type="password"
                 placeholder="Create a password"
-                onChange={(e) =>
+                onChange={e =>
                   dispatch({
                     type: "passwordImmediately",
                     value: e.target.value,
                   })
                 }
               />
+              <CSSTransition
+                in={state.password.hasErrors}
+                timeout={330}
+                classNames="liveValidateMessage"
+                unmountOnExit
+              >
+                <div className="alert alert-danger small liveValidateMessage">
+                  {state.password.message}
+                </div>
+              </CSSTransition>
             </div>
             <button
               type="submit"

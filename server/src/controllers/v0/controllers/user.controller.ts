@@ -8,7 +8,7 @@ import jwt from "jsonwebtoken";
 import { ObjectId } from "mongodb";
 
 // how long a token lasts before expiring
-const tokenLasts = "365d";
+const tokenLasts = "30d";
 
 // ==========================================================================
 export const apiGetPostsByUsername = async (req: Request, res: Response) => {

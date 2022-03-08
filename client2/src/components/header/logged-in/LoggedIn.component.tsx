@@ -11,7 +11,7 @@ interface LoggedOutProps {
 }
 
 const LoggedIn: FC = () => {
-  const { logout, openSearch, toggleChat, closeChat } = useActions();
+  const { logout, openSearch, toggleChat, addFlashMessage } = useActions();
   const navigate = useNavigate();
 
   const [avatar, username, isChatOpen, unreadChatCount] = useTypedSelector(
@@ -29,6 +29,7 @@ const LoggedIn: FC = () => {
     logout();
     // redirect to home guest
     navigate(`/`);
+    addFlashMessage("You have successfuly logged out.");
   };
 
   const handleSearchIcon = (

@@ -6,6 +6,56 @@ interface UserData {
   username: string;
   avatar: string;
 }
+
+export const checkToken = (
+  token: string
+): [() => Promise<boolean | undefined>, CancelTokenSource] | [] => {
+  try {
+    const requestToken = Axios.CancelToken.source();
+
+    const sendRequest = async () => {
+      const res: AxiosResponse<boolean | undefined, any> = await Axios.post(
+        `/user/checkToken`,
+        { token },
+        { cancelToken: requestToken.token }
+      );
+      console.log(res.data);
+      return res.data;
+    };
+
+    return [sendRequest, requestToken];
+  } catch (e) {
+    console.log("there was an error");
+    return [];
+  }
+};
+
+export const registerUser = (
+  username: string,
+  email: string,
+  password: string
+): [() => Promise<UserData | undefined>, CancelTokenSource] | [] => {
+  try {
+    const requestToken = Axios.CancelToken.source();
+
+    const sendRequest = async () => {
+      const res: AxiosResponse<UserData | undefined, any> = await Axios.post(
+        `/user/register`,
+        { username, email, password },
+        { cancelToken: requestToken.token }
+      );
+      console.log(res.data);
+      console.log("user created");
+      return res.data;
+    };
+
+    return [sendRequest, requestToken];
+  } catch (e) {
+    console.log("there was an error");
+    return [];
+  }
+};
+
 export const loginUser = async (username: string, password: string) => {
   try {
     const res: AxiosResponse<UserData, any> = await Axios.post("/user/login", {

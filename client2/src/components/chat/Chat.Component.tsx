@@ -9,9 +9,9 @@ import {
   SocketData,
 } from "../../models";
 
-const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(
-  "http://localhost:8000"
-);
+// const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(
+//   "http://localhost:8000"
+// );
 
 interface StateProps {
   fieldValue: string;
@@ -30,6 +30,10 @@ const Chat: FC = () => {
   );
   const chatInput = useRef<HTMLInputElement | null>(null);
   const chatLog = useRef<HTMLDivElement | null>(null);
+  const socket = useRef<Socket<
+    ServerToClientEvents,
+    ClientToServerEvents
+  > | null>(null);
 
   const [state, setState] = useState<StateProps>({
     fieldValue: "",
@@ -45,12 +49,19 @@ const Chat: FC = () => {
   }, [isChatOpen]);
 
   useEffect(() => {
-    socket.on("chatFromServer", (messageFromServer) => {
-      setState((prevState) => ({
+    socket.current = io("http://localhost:8000");
+
+    socket.current.on("chatFromServer", messageFromServer => {
+      setState(prevState => ({
         ...prevState,
         chatMessages: [...prevState.chatMessages, messageFromServer],
       }));
     });
+
+    // clean on unmount
+    return () => {
+      socket.current?.disconnect();
+    };
   }, []);
 
   useEffect(() => {
@@ -69,14 +80,17 @@ const Chat: FC = () => {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    console.log(socket.current);
+
+    if (!socket.current) return;
     // send message to chat server
-    socket.emit("chatFromBrowser", {
+    socket.current.emit("chatFromBrowser", {
       message: state.fieldValue,
       token,
     });
 
     // add message to state collection messages
-    setState((prevState) => ({
+    setState(prevState => ({
       ...prevState,
       chatMessages: [
         ...prevState.chatMessages,

@@ -1,4 +1,5 @@
 import React, { FC, useState } from "react";
+import { loginUser } from "../../../api/userApi";
 import { useActions } from "../../../hooks/useActions";
 
 interface UserData {
@@ -12,14 +13,22 @@ interface LoggedOutProps {
 }
 
 const LoggedOut: FC = () => {
-  const { login } = useActions();
+  const { login, addFlashMessage } = useActions();
 
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    login(username, password);
+    try {
+      const data = await loginUser(username, password);
+      if (data) {
+        login(data.token, data.username, data.avatar);
+        addFlashMessage("You have successfuly logged in.");
+      } else {
+        addFlashMessage("Invalid username / password.");
+      }
+    } catch (e) {}
   };
 
   return (
@@ -32,7 +41,7 @@ const LoggedOut: FC = () => {
             type="text"
             placeholder="Username"
             autoComplete="off"
-            onChange={(e) => setUsername(e.target.value)}
+            onChange={e => setUsername(e.target.value)}
           />
         </div>
         <div className="col-md mr-0 pr-md-0 mb-3 mb-md-0">
@@ -41,7 +50,7 @@ const LoggedOut: FC = () => {
             className="form-control form-control-sm input-dark"
             type="password"
             placeholder="Password"
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={e => setPassword(e.target.value)}
           />
         </div>
         <div className="col-md-auto">

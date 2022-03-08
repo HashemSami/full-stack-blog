@@ -5,7 +5,7 @@ import { BrowserRouter } from "react-router-dom";
 import MainPage from "./pages/MainPage.component";
 
 import Axios from "axios";
-Axios.defaults.baseURL = "http://localhost:8000/api/v0";
+Axios.defaults.baseURL = process.env.BECKENDURL || "";
 
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";

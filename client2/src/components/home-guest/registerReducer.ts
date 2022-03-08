@@ -2,39 +2,41 @@ import React, { useReducer } from "react";
 
 type RegisterActions =
   | {
+      type: "usernameAfterDelay" | "emailAfterDelay" | "passwordAfterDelay";
+      value?: "";
+      noRequest?: boolean;
+    }
+  | {
       type: "usernameImmediately" | "emailImmediately" | "passwordImmediately";
       value: string;
     }
   | { type: "usernameUniqueResults" | "emailUniqueResults"; value: boolean }
-  | { type: "usernameAfterDelay" | "emailAfterDelay" | "passwordAfterDelay" };
+  | { type: "submitForm" };
 
-const initialState = {
+interface State {
   username: {
-    value: "",
-    hasErrors: false,
-    message: "",
-    isUnique: false,
-    checkCount: 0,
-  },
+    value: string;
+    hasErrors: boolean;
+    message: string;
+    isUnique: boolean;
+    checkCount: number;
+  };
   email: {
-    value: "",
-    hasErrors: false,
-    message: "",
-    isUnique: false,
-    checkCount: 0,
-  },
+    value: string;
+    hasErrors: boolean;
+    message: string;
+    isUnique: boolean;
+    checkCount: number;
+  };
   password: {
-    value: "",
-    hasErrors: false,
-    message: "",
-  },
-  submitCount: 0,
-};
+    value: string;
+    hasErrors: boolean;
+    message: string;
+  };
+  submitCount: number;
+}
 
-const reducer = (
-  state: typeof initialState,
-  action: RegisterActions
-): typeof initialState => {
+const reducer = (state: State, action: RegisterActions): State => {
   switch (action.type) {
     case "usernameImmediately": {
       let hasErrors: boolean = false,
@@ -69,7 +71,9 @@ const reducer = (
         hasErrors = true;
         message = "Username must be at least 3 character.";
       }
-      if (!hasErrors) {
+      // only check with the server when the user if filling the form
+      // not on the submit
+      if (!hasErrors && !action.noRequest) {
         checkCount += 1;
       }
 
@@ -124,7 +128,7 @@ const reducer = (
         message = "You must provide a valid email address.";
       }
 
-      if (!hasErrors) {
+      if (!hasErrors && !action.noRequest) {
         checkCount += 1;
       }
 
@@ -157,33 +161,91 @@ const reducer = (
         },
       };
     }
+
     case "passwordImmediately": {
       let hasErrors: boolean = false,
-        message: string = state.username.message;
+        message: string = state.password.message;
+
+      if (action.value.length > 50) {
+        hasErrors = true;
+        message = "Password cannot exceed 50 characters.";
+      }
+
       return {
         ...state,
         password: {
           ...state.password,
-          hasErrors: false,
           value: action.value,
+          hasErrors,
+          message,
         },
       };
     }
 
-    // case "passwordAfterDelay":
-    //   return;
-    // case "submitForm":
-    //   return;
+    case "passwordAfterDelay": {
+      let hasErrors: boolean = state.password.hasErrors,
+        message: string = state.password.message;
+
+      if (state.password.value.length < 12) {
+        hasErrors = true;
+        message = "Password must be as least 12 characters.";
+      }
+
+      return {
+        ...state,
+        password: {
+          ...state.password,
+          hasErrors,
+          message,
+        },
+      };
+    }
+
+    case "submitForm": {
+      let submitCount: number = state.submitCount;
+
+      if (
+        !state.username.hasErrors &&
+        state.username.isUnique &&
+        !state.email.hasErrors &&
+        state.email.isUnique &&
+        !state.password.hasErrors
+      ) {
+        submitCount++;
+      }
+      return { ...state, submitCount };
+    }
     default:
       return state;
   }
 };
 
 export const useRegisterReducer = (): [
-  typeof initialState,
+  State,
   React.Dispatch<RegisterActions>
 ] => {
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const initialState: State = {
+    username: {
+      value: "",
+      hasErrors: false,
+      message: "",
+      isUnique: false,
+      checkCount: 0,
+    },
+    email: {
+      value: "",
+      hasErrors: false,
+      message: "",
+      isUnique: false,
+      checkCount: 0,
+    },
+    password: {
+      value: "",
+      hasErrors: false,
+      message: "",
+    },
+    submitCount: 0,
+  };
 
-  return [state, dispatch];
+  return useReducer(reducer, initialState);
 };
