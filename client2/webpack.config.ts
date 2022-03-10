@@ -95,7 +95,7 @@ if (
   };
 }
 
-if (currentTask == "webpackBuild") {
+if (currentTask == "webpackBuild" || currentTask == "build") {
   config.plugins?.push(new CleanWebpackPlugin(), new RunAfterCompile());
 
   config.mode = "production";

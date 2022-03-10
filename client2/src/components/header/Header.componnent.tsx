@@ -6,10 +6,16 @@ import { useTypedSelector } from "../../hooks/useSelector";
 import LoggedOut from "./logged-out/LoggedOut.component";
 import LoggedIn from "./logged-in/LoggedIn.component";
 
-const Header: FC = () => {
+interface HeaderProps {
+  staticEmpty?: boolean;
+}
+
+const Header: FC<HeaderProps> = ({ staticEmpty }) => {
   const isLoggedIn = useTypedSelector(
     ({ currentUser: { isLoggedIn } }) => isLoggedIn
   );
+
+  const headerContent = isLoggedIn ? <LoggedIn /> : <LoggedOut />;
 
   return (
     <header className="header-bar bg-primary mb-3">
@@ -19,7 +25,7 @@ const Header: FC = () => {
             ComplexApp
           </Link>
         </h4>
-        {isLoggedIn ? <LoggedIn /> : <LoggedOut />}
+        {!staticEmpty ? headerContent : ""}
       </div>
     </header>
   );
