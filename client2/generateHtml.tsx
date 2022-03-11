@@ -78,3 +78,5 @@ const stream = fs.createWriteStream(fileName);
 stream.once("open", () => {
   stream.end(overallHtmlString);
 });
+
+// "babel-node --presets=@babel/preset-react,@babel/preset-env generateHtml.tsx"
