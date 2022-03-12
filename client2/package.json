@@ -3,11 +3,10 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "type": "module",
   "scripts": {
     "start": "webpack serve --open",
     "build": "webpack",
-    "generate": "babel-node --presets @babel/preset-typescript,@babel/preset-react,@babel/preset-env generateHtml.tsx",
+    "generate": "ts-node generateHtml.tsx",
     "test": "echo \"Error: no test specified\" && exit 1",
     "previewDist": "node previewDist"
   },

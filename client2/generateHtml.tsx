@@ -24,7 +24,7 @@ function Shell() {
   );
 }
 
-function html(x) {
+function html(x: string) {
   return `<!DOCTYPE html>
   <html lang="en">
     <head>
@@ -79,4 +79,4 @@ stream.once("open", () => {
   stream.end(overallHtmlString);
 });
 
-// "babel-node --presets=@babel/preset-react,@babel/preset-env generateHtml.tsx"
+// "babel-node  --presets @babel/preset-env,@babel/preset-react,@babel/preset-typescript -x .ts,.tsx --  generateHtml.ts"
